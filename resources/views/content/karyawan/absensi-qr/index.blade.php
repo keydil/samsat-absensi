@@ -125,52 +125,73 @@
 
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    {{-- face-api.js untuk deteksi wajah --}}
+    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
 
     <script>
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         let html5QrcodeScanner = null;
+        let userLatitude = null;
+        let userLongitude = null;
+        let faceDetected = false;
+        let capturedFaceImage = null;
 
-        // --- TOMBOL KONTROL ---
+        function getLocation() {
+            if (!navigator.geolocation) {
+                Swal.fire('Error', 'Browser tidak mendukung GPS.', 'error');
+                return;
+            }
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    userLatitude = pos.coords.latitude;
+                    userLongitude = pos.coords.longitude;
+                    console.log('GPS OK:', userLatitude, userLongitude);
+                },
+                (err) => {
+                    Swal.fire('Izin Lokasi Diperlukan',
+                        'Aktifkan izin lokasi di browser untuk absensi.', 'warning');
+                }, {
+                    enableHighAccuracy: true
+                }
+            );
+        }
+        getLocation();
+
         document.getElementById('start-camera').addEventListener('click', function() {
             startScanner();
             this.classList.add('hidden');
             document.getElementById('stop-camera').classList.remove('hidden');
-
-            // Sembunyikan placeholder
             document.getElementById('camera-placeholder').classList.add('hidden');
         });
 
         document.getElementById('stop-camera').addEventListener('click', function() {
-            if (html5QrcodeScanner) {
-                html5QrcodeScanner.clear();
-            }
+            if (html5QrcodeScanner) html5QrcodeScanner.clear();
             this.classList.add('hidden');
             document.getElementById('start-camera').classList.remove('hidden');
-
-            // Munculkan placeholder lagi
             document.getElementById('camera-placeholder').classList.remove('hidden');
         });
 
-        // --- FUNGSI SCANNER ---
+
         function startScanner() {
-            html5QrcodeScanner = new Html5QrcodeScanner(
-                "reader", {
-                    fps: 10,
-                    qrbox: {
-                        width: 250,
-                        height: 250
-                    }
-                },
-                false
-            );
-            html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+            html5QrcodeScanner = new Html5QrcodeScanner("reader", {
+                fps: 10,
+                qrbox: {
+                    width: 250,
+                    height: 250
+                }
+            }, false);
+            html5QrcodeScanner.render(onScanSuccess, () => {});
         }
 
-        function onScanSuccess(decodedText, decodedResult) {
-            // Pause biar gak scan dobel
+        function onScanSuccess(decodedText) {
             html5QrcodeScanner.pause();
 
-            // Cek ke Server (Pake route 'user.scanCheck' sesuai web.php lu)
+            if (!userLatitude || !userLongitude) {
+                Swal.fire('Lokasi Belum Siap', 'Tunggu sebentar, GPS sedang diambil. Coba lagi.', 'warning')
+                    .then(() => html5QrcodeScanner.resume());
+                return;
+            }
+
             fetch("{{ route('user.scanCheck') }}", {
                     method: "POST",
                     headers: {
@@ -181,40 +202,120 @@
                         code_qr: decodedText
                     })
                 })
-                .then(response => response.json())
+                .then(r => r.json())
                 .then(data => {
                     if (data.success) {
-                        // KONFIRMASI ABSEN
-                        Swal.fire({
-                            title: 'QR Terbaca!',
-                            html: `<p>Absen <b>${data.data.present_type}</b><br>Shift: ${data.data.shift}</p>`,
-                            icon: 'question',
-                            showCancelButton: true,
-                            confirmButtonText: 'Ya, Absen',
-                            cancelButtonText: 'Batal'
-                        }).then((result) => {
-                            if (result.isConfirmed) {
-                                prosesAbsen(data.data.qr_id, data.data.shift_id);
-                            } else {
-                                html5QrcodeScanner.resume();
-                            }
-                        });
+                        // Lanjut ke verifikasi wajah
+                        showFaceVerification(data.data);
                     } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Gagal',
-                            text: data.message
-                        }).then(() => html5QrcodeScanner.resume());
+                        Swal.fire('Gagal', data.message, 'error').then(() => html5QrcodeScanner.resume());
                     }
-                })
-                .catch(err => {
-                    console.error(err);
-                    html5QrcodeScanner.resume();
                 });
         }
 
-        function prosesAbsen(qrId, shiftId) {
-            // Kirim data (Pake route 'user.scanStore' sesuai web.php lu)
+        async function showFaceVerification(qrData) {
+            const {
+                value: confirmed
+            } = await Swal.fire({
+                title: `QR Terbaca: Absen ${qrData.present_type}`,
+                html: `
+            <p class="text-sm text-slate-500 mb-3">Verifikasi wajah diperlukan sebelum absen.</p>
+            <div style="position:relative;display:inline-block">
+                <video id="face-video" width="280" height="210"
+                    style="border-radius:12px;background:#000;display:block" autoplay muted playsinline></video>
+                <canvas id="face-overlay" width="280" height="210"
+                    style="position:absolute;top:0;left:0;border-radius:12px"></canvas>
+            </div>
+            <canvas id="face-capture" width="280" height="210" style="display:none"></canvas>
+            <p id="face-status" class="text-xs mt-2 text-slate-500">Memuat model deteksi wajah...</p>
+        `,
+                showCancelButton: true,
+                confirmButtonText: 'Absen Sekarang',
+                cancelButtonText: 'Batal',
+                confirmButtonColor: '#2563eb',
+                didOpen: () => startFaceDetection(),
+                willClose: () => stopFaceCamera(),
+                preConfirm: () => {
+                    if (!faceDetected) {
+                        Swal.showValidationMessage('Wajah tidak terdeteksi! Hadapkan wajah ke kamera.');
+                        return false;
+                    }
+                    return true;
+                }
+            });
+
+            if (confirmed) {
+                prosesAbsen(qrData.qr_id);
+            } else {
+                html5QrcodeScanner.resume();
+            }
+        }
+
+        let faceStream = null;
+        let faceInterval = null;
+
+        async function startFaceDetection() {
+            const video = document.getElementById('face-video');
+            const overlay = document.getElementById('face-overlay');
+            const status = document.getElementById('face-status');
+
+            try {
+                // Load model face-api.js (CDN)
+                const MODEL_URL = 'https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/weights';
+                await Promise.all([
+                    faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+                    faceapi.nets.faceLandmark68TinyNet.loadFromUri(MODEL_URL),
+                ]);
+
+                faceStream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: 'user'
+                    }
+                });
+                video.srcObject = faceStream;
+                status.textContent = 'Kamera aktif. Hadapkan wajah ke kamera...';
+
+                faceInterval = setInterval(async () => {
+                    const ctx = overlay.getContext('2d');
+                    ctx.clearRect(0, 0, overlay.width, overlay.height);
+
+                    const detection = await faceapi.detectSingleFace(
+                        video, new faceapi.TinyFaceDetectorOptions({
+                            scoreThreshold: 0.5
+                        })
+                    ).withFaceLandmarks(true);
+
+                    if (detection) {
+                        faceDetected = true;
+                        status.innerHTML =
+                            '<span style="color:#16a34a;font-weight:bold">✅ Wajah terdeteksi! Klik Absen Sekarang.</span>';
+
+                        // Gambar kotak wajah
+                        const dims = faceapi.matchDimensions(overlay, video, true);
+                        faceapi.draw.drawDetections(overlay, faceapi.resizeResults(detection, dims));
+
+                        // Capture foto
+                        const capCanvas = document.getElementById('face-capture');
+                        capCanvas.getContext('2d').drawImage(video, 0, 0, 280, 210);
+                        capturedFaceImage = capCanvas.toDataURL('image/jpeg', 0.7);
+                    } else {
+                        faceDetected = false;
+                        status.textContent = 'Wajah tidak terdeteksi. Pastikan pencahayaan cukup.';
+                    }
+                }, 500);
+
+            } catch (err) {
+                status.textContent = 'Gagal akses kamera: ' + err.message;
+            }
+        }
+
+        function stopFaceCamera() {
+            if (faceInterval) clearInterval(faceInterval);
+            if (faceStream) faceStream.getTracks().forEach(t => t.stop());
+            faceDetected = false;
+        }
+
+        function prosesAbsen(qrId) {
             fetch("{{ route('user.scanStore') }}", {
                     method: "POST",
                     headers: {
@@ -223,35 +324,27 @@
                     },
                     body: JSON.stringify({
                         qr_id: qrId,
-                        shift_id: shiftId,
-                        status: 'Hadir', // Default Hadir (scan QR pasti hadir)
-                        status_desc: 'Absensi via QR Code'
+                        status: 'Hadir',
+                        face_image: capturedFaceImage,
+                        latitude: userLatitude,
+                        longitude: userLongitude,
                     })
                 })
-                .then(response => response.json())
+                .then(r => r.json())
                 .then(data => {
                     if (data.success) {
                         Swal.fire({
-                            icon: 'success',
-                            title: 'Berhasil!',
-                            text: data.message,
-                            timer: 2000,
-                            showConfirmButton: false
-                        }).then(() => {
-                            location.reload(); // Reload buat update tabel riwayat
-                        });
+                                icon: 'success',
+                                title: 'Berhasil!',
+                                text: data.message,
+                                timer: 2000,
+                                showConfirmButton: false
+                            })
+                            .then(() => location.reload());
                     } else {
-                        Swal.fire({
-                            icon: 'warning',
-                            title: 'Peringatan',
-                            text: data.message
-                        }).then(() => html5QrcodeScanner.resume());
+                        Swal.fire('Gagal', data.message, 'error').then(() => html5QrcodeScanner.resume());
                     }
                 });
-        }
-
-        function onScanFailure(error) {
-            // Biarin kosong biar console gak berisik
         }
     </script>
 @endsection
