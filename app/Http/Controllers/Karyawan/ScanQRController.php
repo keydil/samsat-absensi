@@ -88,7 +88,7 @@ class ScanQRController extends Controller
 
         // ⛔ Cek sudah absen di shift ini belum
         $already = Absen::where('user_id', $user->id)
-            ->where('shift_id', $qr->shift_id)
+        ->where('qr_code_id', $qr->id)
             ->where('date', $qr->date)
             ->first();
 

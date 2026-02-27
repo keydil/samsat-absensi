@@ -1,105 +1,134 @@
 @extends('layouts.app')
 
-@section('title', 'Dashboard')
-@section('page', 'QR-Code Absensi')
-@section('card', 'Show QR')
-
 @section('content')
-    <section class="section">
-        <div class="section-header">
-            <h1>@yield('title')</h1>
-            @include('partials.breadcrumb')
+    <div class="space-y-8">
+        
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+                <h1 class="text-2xl font-bold tracking-tight text-slate-900">Detail QR Code</h1>
+                <p class="text-sm text-slate-500">Informasi detail mengenai QR Code absensi yang dipilih.</p>
+            </div>
+            <a href="{{ route('admin.generate-qr') }}" class="inline-flex items-center gap-2 rounded-lg bg-white border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 transition-all">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Kembali
+            </a>
         </div>
-        <div class="section-body">
-            <h2 class="section-title">@yield('page')</h2>
 
-            <div class="row">
-                <div class="col-12 col-md-12 col-lg-12">
-                    <div class="card card-primary">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h4 class="section-title mt-0 mb-0">@yield('card')</h4>
-                            <a href="{{ url()->previous() }}" class="btn btn-sm btn-primary d-flex align-items-center">
-                                <i class="fas fa-arrow-left mr-2"></i> Kembali
-                            </a>
-                        </div>
-                        <div class="card-body">
-                            
-                            <!-- Data Absen-->
-                            <div class="form-row">
-                                <div class="form-group col-md-6 mt-0">
-                                    <div class="w-100 w-lg-50">
-                                        <table class="table table-border table-hover">
-                                            <tbody>
-                                                <tr>
-                                                    <td><strong>Absen</strong></td>
-                                                    <td class="px-0"> : </td>
-                                                    <td>{{ $qr->present == 'in_present' ? 'Masuk' : 'Keluar' }}</td>
-                                                </tr>
-                                                <tr>
-                                                    <td><strong>Shift</strong></td>
-                                                    <td class="px-0"> : </td>
-                                                    <td>{{ $qr->shift->shift_name }}</td>
-                                                </tr>
-                                                <tr>
-                                                    <td><strong>Jam Kerja</strong></td>
-                                                    <td class="px-0"> : </td>
-                                                    <td>{{ $qr->shift->in_time }} &mdash; {{ $qr->shift->out_time }}</td>
-                                                <tr>
-                                                    <td width="150"><strong>Tanggal</strong></td>
-                                                    <td class="px-0"> : </td>
-                                                    <td>{{ \Carbon\Carbon::parse($qr->date)->format('d M Y') }}</td>
-                                                </tr>
-                                                <tr>
-                                                    <td><strong>Aktif QR</strong></td>
-                                                    <td class="px-0"> : </td>
-                                                    <td>{{ \Carbon\Carbon::parse($qr->start_time)->format('H:i') }}</td>
-                                                </tr>
-                                                <tr>
-                                                    <td><strong>Expired QR</strong></td>
-                                                    <td class="px-0"> : </td>
-                                                    <td>{{ \Carbon\Carbon::parse($qr->end_time)->format('H:i') }}</td>
-                                                </tr>
-                                                <tr>
-                                                    <td><strong>ID QR</strong></td>
-                                                    <td class="px-0"> : </td>
-                                                    <td>{{ $qr->code_qr }}</td>
-                                                </tr>
-                                                <tr>
-                                                    <td><strong>Status</strong></td>
-                                                    <td class="px-0"> : </td>
-                                                    <td>                                                       @if ($qr->status == 'active')
-                                                            <span class="badge badge-success">Aktif</span>
-                                                        @else
-                                                            <span class="badge badge-danger">Expired</span>
-                                                        @endif
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
+        <div class="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+            <div class="border-b border-slate-100 bg-slate-50/50 px-6 py-4">
+                <h3 class="font-semibold text-slate-800">Data Absensi QR</h3>
+            </div>
 
-                                <!-- QR-Code Absen-->
-                                <div class="form-group col-md-6 mt-0">
-                                    <div class="d-flex justify-content-center align-items-center w-100 w-lg-50 mt-4 mt-lg-0">
-                                        <div class="text-center p-4 rounded shadow-sm bg-light" 
-                                            style="max-width: 280px; width: 100%; border: 1px solid #e0e0e0;">
-                                            <h6 class="font-weight-bold mb-1">
-                                                Absen {{ $qr->present == 'in_present' ? 'Masuk' : 'Keluar' }} - Shift {{ ucfirst($qr->shift->shift_name) }}
-                                            </h6>
-                                            <p class="mb-2 font-weight-bold small">{{ \Carbon\Carbon::parse($qr->date)->format('d M Y') }}</p>
-                                            <div class="d-flex justify-content-center mb-2">
-                                                {!! $showQR !!}
-                                            </div>
-                                            <p class="mt-2 text-muted small">{{ $qr->code_qr }}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    
+                    <div class="lg:col-span-2 space-y-6">
+                        <div class="overflow-hidden rounded-lg border border-slate-200">
+                            <table class="min-w-full divide-y divide-slate-200">
+                                <tbody class="divide-y divide-slate-200 bg-white">
+                                    
+                                    <tr>
+                                        <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-slate-500 w-1/3">Jenis Absen</td>
+                                        <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-900 font-bold">
+                                            @if($qr->present == 'in_present')
+                                                <span class="inline-flex items-center rounded-md px-2.5 py-1 text-xs font-medium bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-700/10">Masuk</span>
+                                            @else
+                                                <span class="inline-flex items-center rounded-md px-2.5 py-1 text-xs font-medium bg-orange-50 text-orange-700 ring-1 ring-inset ring-orange-600/20">Pulang</span>
+                                            @endif
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-slate-500">Shift Kerja</td>
+                                        <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-900 font-semibold">
+                                            {{ $qr->shift->shift_name }}
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-slate-500">Jam Operasional Shift</td>
+                                        <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-700">
+                                            {{ \Carbon\Carbon::parse($qr->shift->in_time)->format('H:i') }} 
+                                            <span class="text-slate-400 mx-1">&mdash;</span> 
+                                            {{ \Carbon\Carbon::parse($qr->shift->out_time)->format('H:i') }} WIB
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-slate-500">Tanggal Absen</td>
+                                        <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-700">
+                                            {{ \Carbon\Carbon::parse($qr->date)->translatedFormat('l, d F Y') }}
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-slate-500">Mulai Scan (Aktif)</td>
+                                        <td class="whitespace-nowrap px-6 py-4 text-sm text-emerald-600 font-bold">
+                                            {{ \Carbon\Carbon::parse($qr->start_time)->format('H:i') }} WIB
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-slate-500">Selesai Scan (Expired)</td>
+                                        <td class="whitespace-nowrap px-6 py-4 text-sm text-red-600 font-bold">
+                                            {{ \Carbon\Carbon::parse($qr->end_time)->format('H:i') }} WIB
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-slate-500">Status QR</td>
+                                        <td class="whitespace-nowrap px-6 py-4 text-sm">
+                                            @if($qr->status == 'active')
+                                                <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20">
+                                                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-600 animate-pulse"></span> Aktif
+                                                </span>
+                                            @else
+                                                <span class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600 ring-1 ring-inset ring-slate-500/10">
+                                                    Expired
+                                                </span>
+                                            @endif
+                                        </td>
+                                    </tr>
+
+                                </tbody>
+                            </table>
                         </div>
                     </div>
+
+                    <div class="lg:col-span-1">
+                        <div class="flex flex-col items-center justify-center rounded-xl bg-slate-50 p-6 border border-slate-200 border-dashed h-full">
+                            
+                            <div class="text-center mb-4">
+                                <h4 class="text-lg font-bold text-slate-800">Scan Disini</h4>
+                                <p class="text-xs text-slate-500">Arahkan kamera HP ke QR Code ini</p>
+                            </div>
+
+                            <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-100 mb-4">
+                                {!! $showQR !!}
+                            </div>
+
+                            <div class="text-center w-full">
+                                <p class="text-[10px] font-mono text-slate-400 uppercase tracking-wider mb-1">QR ID</p>
+                                <div class="bg-slate-200/50 rounded px-2 py-1 text-xs font-mono text-slate-600 break-all select-all cursor-text">
+                                    {{ $qr->code_qr }}
+                                </div>
+                            </div>
+
+                            <button onclick="window.print()" class="mt-6 flex w-full items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 transition-colors">
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                                </svg>
+                                Print QR Code
+                            </button>
+
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>
-    </section>
+
+    </div>
 @endsection

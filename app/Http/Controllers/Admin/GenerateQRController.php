@@ -14,13 +14,11 @@ class GenerateQRController extends Controller
 {
     public function index()
     {
-        // Update otomatis QR yang sudah lewat waktu menjadi expired
         $now = Carbon::now();
         QrCodeModel::where('status', 'active')
             ->where('end_time', '<', $now)
             ->update(['status' => 'expired']);
 
-        // Ambil data shift dan QR yang masih aktif
         $shifts = Shift::all();
         $activeQr = QrCodeModel::with('shift')
             // ->where('status', 'active')
@@ -32,47 +30,53 @@ class GenerateQRController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'shift_id' => 'required|exists:shifts,id',
-            'present_type' => 'required|in:in_present,out_present',
-            'date' => 'required|date_format:Y-m-d',
-            'start_time' => 'required|date_format:H:i',
-            'end_time' => 'required|date_format:H:i|after:start_time',
-        ],[
-            'shift_id.required' => 'Silahkan pilih shift jam kerja',
-            'present_type.required' => 'Silahkan pilih jenis absen',
-            'date.required' => 'Masukkan tanggal absen',
-            'start_time.required' => 'Masukkan waktu mulai aktif QR',
-            'end_time.required' => 'Masukkan waktu berakhir QR',
-        ]);
+        $request->validate(
+            [
+                'present_type' => 'required|in:in_present,out_present',
+                'date' => 'required|date_format:Y-m-d',
+                'start_time' => 'required|date_format:H:i',
+                'end_time' => 'required|date_format:H:i|after:start_time',
+            ],
+            [
+                'present_type.required' => 'Silahkan pilih jenis absen',
+                'date.required' => 'Masukkan tanggal absen',
+                'start_time.required' => 'Masukkan waktu mulai aktif QR',
+                'end_time.required' => 'Masukkan waktu berakhir QR',
+            ],
+        );
 
-        $shift = Shift::findOrFail($request->shift_id);
+        // ✅ CEK DOBEL: tanggal + tipe yang sama ga boleh ada QR aktif lagi
+        $exists = QrCodeModel::where('date', $request->date)->where('present', $request->present_type)->where('status', 'active')->exists();
 
-        // Gabungkan tanggal + waktu menjadi datetime
+        if ($exists) {
+            $label = $request->present_type == 'in_present' ? 'Absen Masuk' : 'Absen Pulang';
+            return redirect()
+                ->back()
+                ->withErrors(['duplicate' => "QR {$label} untuk tanggal {$request->date} sudah ada dan masih aktif!"])
+                ->withInput();
+        }
+
         $start_time = Carbon::parse($request->date . ' ' . $request->start_time);
-        $end_time   = Carbon::parse($request->date . ' ' . $request->end_time);
-
-        // Generate kode unik QR
+        $end_time = Carbon::parse($request->date . ' ' . $request->end_time);
         $qr_code_value = Str::uuid()->toString();
 
-        // Simpan ke database
         QrCodeModel::create([
-            'shift_id' => $shift->id,
+            'shift_id' => null, // shift dihapus dari flow
             'code_qr' => $qr_code_value,
             'present' => $request->present_type,
             'date' => $request->date,
             'start_time' => $start_time,
             'end_time' => $end_time,
-            'status' => 'active', 
+            'status' => 'active',
         ]);
 
-        return redirect()->back()->with([
-            'message' => 'QR Code berhasil dibuat!',
-            'date' => $request->date,
-            'qr_code_value' => $qr_code_value,
-            'qr_shift_name' => $shift->shift_name,
-            'qr_present_type' => $request->present_type,
-        ]);
+        return redirect()
+            ->back()
+            ->with([
+                'message' => 'QR Code berhasil dibuat!',
+                'qr_code_value' => $qr_code_value,
+                'qr_present_type' => $request->present_type,
+            ]);
     }
 
     public function show($code)

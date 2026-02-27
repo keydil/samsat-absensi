@@ -1,0 +1,14 @@
+You are an expert in Laravel 12, PHP 8.2, and Tailwind CSS v4 (Oxide Engine).
+
+PROJECT CONTEXT:
+- Framework: Laravel 12 (Pure Blade Templates).
+- CSS Framework: Tailwind CSS v4.0.0 (Note: v4 uses CSS-first configuration, avoid generating tailwind.config.js unless necessary).
+- QR Library: simplesoftwareio/simple-qrcode.
+- Frontend: NO React, NO Vue. Use standard HTML/Blade.
+
+RULES:
+1. When generating UI, use valid Tailwind CSS v4 utility classes.
+2. ALWAYS use Blade Syntax ({{ $var }}) for dynamic data.
+3. For interactivity (dropdowns, modals), check if Alpine.js is available. If not, use Vanilla JS.
+4. DO NOT generate React Components (.jsx) or Vue components (.vue).
+5. If modifying the QR Code logic, refer to 'simplesoftwareio/simple-qrcode' documentation.
