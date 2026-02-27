@@ -45,21 +45,6 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-2">Shift Kerja</label>
-                        <select name="shift_id"
-                            class="w-full rounded-lg border-slate-200 bg-slate-50 px-3 py-2.5 text-slate-700 focus:border-blue-500 focus:ring-blue-500"
-                            required>
-                            <option value="" disabled selected>--- Pilih Shift ---</option>
-                            @foreach ($shifts as $shift)
-                                <option value="{{ $shift->id }}">
-                                    {{ $shift->shift_name }} ({{ \Carbon\Carbon::parse($shift->in_time)->format('H:i') }} -
-                                    {{ \Carbon\Carbon::parse($shift->out_time)->format('H:i') }})
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-2">Tanggal Absen</label>
                         <input type="date" name="date" value="{{ date('Y-m-d') }}"
                             class="w-full rounded-lg border-slate-200 px-3 py-2.5 text-slate-700 focus:border-blue-500 focus:ring-blue-500"

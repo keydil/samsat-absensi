@@ -11,7 +11,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\RekapAbsensiController;
 
-
 Route::get('/', fn() => view('welcome'))->name('beranda');
 Route::middleware('web')->group(function () {
     // Redirect user admin
@@ -59,6 +58,9 @@ Route::middleware(['RoleUser:Admin'])->group(function () {
     // Generate QR-Code Admin
     Route::get('/dashboard/admin/data/user/create', [DataUserController::class, 'create'])->name('admin.dataUser.create');
     Route::post('/dashboard/admin/data/user', [DataUserController::class, 'store'])->name('admin.dataUser.store');
+    Route::get('/dashboard/admin/data/user/{user}/edit', [DataUserController::class, 'edit'])->name('admin.dataUser.edit');
+    Route::put('/dashboard/admin/data/user/{user}', [DataUserController::class, 'update'])->name('admin.dataUser.update');
+    Route::delete('/dashboard/admin/data/user/{user}', [DataUserController::class, 'destroy'])->name('admin.dataUser.destroy');
     Route::get('/dashboard/admin/generate-qr', [GenerateQRController::class, 'index'])->name('admin.generate-qr');
     Route::post('/dashboard/admin/generate-qr/store', [GenerateQRController::class, 'store'])->name('admin.generate-qr.store');
     Route::get('/dashboard/admin/generate-qr/show/{code}', [GenerateQRController::class, 'show'])->name('admin.generate-qr.show');

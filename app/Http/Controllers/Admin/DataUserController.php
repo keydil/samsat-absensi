@@ -12,7 +12,6 @@ class DataUserController extends Controller
     public function index()
     {
         $users = User::latest()->paginate(10);
-
         return view('content.admin.data-user.index', compact('users'));
     }
 
@@ -24,26 +23,66 @@ class DataUserController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
-            'username' => 'required|string|unique:users,username',
+            'name'      => 'required|string|max:255',
+            'username'  => 'required|string|unique:users,username',
             'code_name' => 'required|string|unique:users,code_name',
-            'email' => 'required|email|unique:users,email',
-            'phone' => 'nullable|string',
-            'role' => 'required|in:Admin,Karyawan',
-            'password' => 'required|string|min:6',
+            'email'     => 'required|email|unique:users,email',
+            'phone'     => 'nullable|string',
+            'role'      => 'required|in:Admin,Karyawan',
+            'password'  => 'required|string|min:6',
         ]);
 
         User::create([
-            'name' => $request->name,
-            'username' => $request->username,
+            'name'      => $request->name,
+            'username'  => $request->username,
             'code_name' => $request->code_name,
-            'email' => $request->email,
-            'phone' => $request->phone,
-            'role' => $request->role,
-
-            'password' => Hash::make($request->password),
+            'email'     => $request->email,
+            'phone'     => $request->phone,
+            'role'      => $request->role,
+            'password'  => Hash::make($request->password),
         ]);
 
         return redirect()->route('admin.dataUser')->with('success', 'Pegawai berhasil ditambahkan!');
+    }
+
+    public function edit(User $user)
+    {
+        return view('content.admin.data-user.edit', compact('user'));
+    }
+
+    public function update(Request $request, User $user)
+    {
+        $request->validate([
+            'name'      => 'required|string|max:255',
+            'username'  => 'required|string|unique:users,username,' . $user->id,
+            'code_name' => 'required|string|unique:users,code_name,' . $user->id,
+            'email'     => 'required|email|unique:users,email,' . $user->id,
+            'phone'     => 'nullable|string',
+            'role'      => 'required|in:Admin,Karyawan',
+            'password'  => 'nullable|string|min:6',
+        ]);
+
+        $data = [
+            'name'      => $request->name,
+            'username'  => $request->username,
+            'code_name' => $request->code_name,
+            'email'     => $request->email,
+            'phone'     => $request->phone,
+            'role'      => $request->role,
+        ];
+
+        if ($request->filled('password')) {
+            $data['password'] = Hash::make($request->password);
+        }
+
+        $user->update($data);
+
+        return redirect()->route('admin.dataUser')->with('success', 'Data pegawai berhasil diperbarui!');
+    }
+
+    public function destroy(User $user)
+    {
+        $user->delete();
+        return redirect()->route('admin.dataUser')->with('success', 'Pegawai berhasil dihapus!');
     }
 }
