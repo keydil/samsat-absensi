@@ -1,13 +1,10 @@
 providers = ["php"]
 
 [phases.setup]
-nixPkgs = ["php82", "php82Extensions.gd", "php82Extensions.pdo_mysql", "php82Extensions.curl", "composer"]
-# Tambahkan ini untuk memastikan library sistem pendukung GD terinstall
-aptPkgs = ["libpng-dev", "libjpeg-dev", "libfreetype6-dev"]
+nixPkgs = ["php82", "php82Extensions.gd", "php82Extensions.pdo_mysql", "php82Extensions.mbstring", "php82Extensions.xml", "php82Extensions.zip", "php82Extensions.curl", "composer"]
 
 [phases.install]
-# Tambahkan --ignore-platform-req=ext-gd agar composer tidak rewel saat build
-cmds = ["composer install --no-dev --optimize-autoloader --no-interaction --ignore-platform-req=ext-gd"]
+cmds = ["composer install --no-dev --optimize-autoloader --no-interaction"]
 
 [phases.build]
 cmds = [
