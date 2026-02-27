@@ -1,10 +1,11 @@
 providers = ["php"]
 
 [phases.setup]
-nixPkgs = ["php82", "php82Extensions.gd", "php82Extensions.pdo_mysql", "php82Extensions.mbstring", "php82Extensions.xml", "php82Extensions.zip", "php82Extensions.curl", "composer"]
+nixPkgs = ["php82", "php82Extensions.gd", "php82Extensions.pdo_mysql", "php82Extensions.curl", "composer"]
+aptPkgs = ["libpng-dev", "libjpeg-dev", "libfreetype6-dev"]
 
 [phases.install]
-cmds = ["composer install --no-dev --optimize-autoloader --no-interaction"]
+cmds = ["composer install --no-dev --optimize-autoloader --no-interaction --ignore-platform-req=ext-gd"]
 
 [phases.build]
 cmds = [
