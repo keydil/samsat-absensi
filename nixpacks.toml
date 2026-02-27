@@ -1,11 +1,10 @@
 providers = ["php"]
 
 [phases.setup]
-nixPkgs = ["php82", "php82Extensions.gd", "php82Extensions.pdo_mysql", "php82Extensions.curl", "composer"]
-aptPkgs = ["libpng-dev", "libjpeg-dev", "libfreetype6-dev"]
+nixPkgs = ["php82", "php82Extensions.gd", "php82Extensions.pdo_mysql", "php82Extensions.mbstring", "php82Extensions.xml", "php82Extensions.zip", "php82Extensions.curl", "composer"]
 
 [phases.install]
-cmds = ["composer install --no-dev --optimize-autoloader --no-interaction --ignore-platform-req=ext-gd"]
+cmds = ["composer install --no-dev --optimize-autoloader --no-interaction"]
 
 [phases.build]
 cmds = [
@@ -14,5 +13,5 @@ cmds = [
     "php artisan view:cache"
 ]
 
-[start]
-cmd = "php artisan serve --host=0.0.0.0 --port=$PORT"
+[deploy]
+startCommand = "php artisan migrate --force && php artisan db:seed --force && php artisan serve --host=0.0.0.0 --port=$PORT"
