@@ -1,61 +1,199 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 🏢 Sistem Absensi Digital — Samsat Rancaekek
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Sistem absensi digital berbasis QR Code untuk **P3DW Rancaekek, Bapenda Provinsi Jawa Barat**. Dibangun menggunakan Laravel 12 dengan fitur keamanan Face Biometric dan Radius Locking.
 
-## About Laravel
+🔗 **Live Demo:** [web-production-721d5.up.railway.app](https://web-production-721d5.up.railway.app)
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## ✨ Fitur Utama
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- **QR Code Absensi** — Admin generate QR, karyawan scan untuk absen masuk & pulang
+- **Face Biometric** — Verifikasi wajah menggunakan `face-api.js` untuk mencegah titip absen
+- **Radius Locking** — Absensi hanya bisa dilakukan dalam radius 50 meter dari kantor (GPS)
+- **Status QR Otomatis** — QR memiliki 3 status: `Terjadwal`, `Aktif`, `Expired`
+- **Pencegahan QR Dobel** — Admin tidak bisa buat QR tipe yang sama di hari yang sama jika masih aktif/terjadwal
+- **CRUD Manajemen User** — Admin bisa tambah, edit, hapus data pegawai
+- **Rekap Absensi** — Export data kehadiran ke format Excel
+- **Real-time Location Status** — Karyawan bisa lihat berapa jarak mereka dari kantor secara realtime
+- **Role-based Access** — Dashboard terpisah untuk Admin dan Karyawan
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## 🛠️ Tech Stack
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+| Komponen | Teknologi |
+|---|---|
+| Backend | Laravel 12 (PHP 8.2) |
+| Frontend | Blade + Tailwind CSS |
+| Database | MySQL |
+| QR Code | `simplesoftwareio/simple-qrcode` |
+| QR Scanner | `html5-qrcode` |
+| Face Detection | `face-api.js` |
+| Export Excel | `maatwebsite/excel` |
+| Deploy | Railway |
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+---
 
-## Laravel Sponsors
+## 🚀 Instalasi Lokal
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### Prasyarat
+- PHP >= 8.2
+- Composer
+- Node.js & npm
+- MySQL / XAMPP
 
-### Premium Partners
+### Langkah Instalasi
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+**1. Clone repository**
+```bash
+git clone https://github.com/keydil/samsat-absensi.git
+cd samsat-absensi
+```
 
-## Contributing
+**2. Install dependencies**
+```bash
+composer install
+npm install
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+**3. Setup environment**
+```bash
+cp .env.example .env
+php artisan key:generate
+```
 
-## Code of Conduct
+**4. Konfigurasi `.env`**
+```env
+APP_NAME="Absensi Samsat"
+APP_URL=http://localhost:8000
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=absensi_samsat
+DB_USERNAME=root
+DB_PASSWORD=
 
-## Security Vulnerabilities
+# Koordinat kantor (sesuaikan dengan lokasi kantor)
+OFFICE_LAT=-6.9824624
+OFFICE_LNG=107.7540507
+OFFICE_RADIUS_METER=50
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+**5. Buat database & jalankan migration**
+```bash
+php artisan migrate
+php artisan db:seed
+```
 
-## License
+**6. Build assets & jalankan server**
+```bash
+npm run build
+php artisan serve
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Akses di: `http://localhost:8000`
+
+---
+
+## 👤 Akun Default (Seeder)
+
+| Role | Username | Password |
+|---|---|---|
+| Admin | `admin` | `password` |
+| Karyawan | `karyawan` | `password` |
+
+> ⚠️ Segera ganti password setelah login pertama kali!
+
+---
+
+## 📁 Struktur Folder Penting
+
+```
+app/
+├── Http/Controllers/
+│   ├── Admin/
+│   │   ├── DataUserController.php    # CRUD manajemen pegawai
+│   │   ├── GenerateQRController.php  # Generate & hapus QR Code
+│   │   └── RekapAbsensiController.php
+│   ├── Auth/AuthController.php
+│   ├── Dashboard/
+│   │   ├── AdminController.php
+│   │   └── UserController.php
+│   └── Karyawan/ScanQRController.php # Scan QR + validasi GPS + foto wajah
+├── Models/
+│   ├── Absen.php
+│   ├── QrCode.php
+│   └── User.php
+resources/views/
+├── content/admin/      # View dashboard admin
+├── content/karyawan/   # View dashboard karyawan
+└── welcome.blade.php   # Landing page
+```
+
+---
+
+## ⚙️ Konfigurasi Koordinat Kantor
+
+Untuk mengubah lokasi kantor, edit nilai berikut di `.env`:
+
+```env
+OFFICE_LAT=-6.9824624    # Latitude kantor
+OFFICE_LNG=107.7540507   # Longitude kantor
+OFFICE_RADIUS_METER=50   # Radius maksimal absensi (meter)
+```
+
+Cara cari koordinat: buka Google Maps → klik lokasi kantor → copy koordinat yang muncul.
+
+---
+
+## 🌐 Deploy ke Railway
+
+**1. Fork/push repo ke GitHub**
+
+**2. Buat project baru di [Railway](https://railway.app)**
+- New Project → Deploy from GitHub → pilih repo ini
+- Tambah service MySQL
+
+**3. Set environment variables di Railway:**
+```
+APP_KEY=base64:xxxx           # php artisan key:generate --show
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://your-domain.up.railway.app
+
+DB_CONNECTION=mysql
+DB_HOST=${{MySQL.RAILWAY_PRIVATE_DOMAIN}}
+DB_PORT=3306
+DB_DATABASE=railway
+DB_USERNAME=root
+DB_PASSWORD=your-mysql-password
+
+OFFICE_LAT=-6.9824624
+OFFICE_LNG=107.7540507
+OFFICE_RADIUS_METER=50
+```
+
+**4. Set Custom Start Command di Settings:**
+```bash
+php artisan migrate --force && php artisan db:seed --force && php artisan serve --host=0.0.0.0 --port=$PORT
+```
+
+---
+
+## 📸 Screenshot
+
+| Landing Page | Dashboard Admin | Scan QR Karyawan |
+|---|---|---|
+| ![Landing](public/images/logo-bapenda.png) | Dashboard Admin | Scan QR |
+
+---
+
+## 📄 Lisensi
+
+Project ini dibuat untuk keperluan internal Samsat Rancaekek dibuat oleh **Fadhil Firdaus Adha**.
+
+---
+
+<p align="center">Made with ❤️ for Samsat Rancaekek</p>
