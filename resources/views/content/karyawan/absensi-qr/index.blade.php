@@ -19,8 +19,10 @@
         <div id="location-status" class="rounded-xl border border-slate-200 bg-white shadow-sm p-4 flex items-center gap-4">
             <div id="loc-icon" class="flex-shrink-0 h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center">
                 <svg class="h-6 w-6 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
             </div>
             <div class="flex-1">
@@ -59,14 +61,16 @@
                         </div>
                     </div>
 
-                    <div class="relative bg-slate-50 rounded-b-xl overflow-hidden min-h-[400px] flex flex-col items-center justify-center">
+                    <div
+                        class="relative bg-slate-50 rounded-b-xl overflow-hidden min-h-[400px] flex flex-col items-center justify-center">
                         <div id="reader"
                             class="w-full max-w-sm bg-white rounded-xl shadow-sm border-2 border-dashed border-slate-300 overflow-hidden z-10 relative">
                         </div>
                         <div id="camera-placeholder"
                             class="absolute inset-0 flex flex-col items-center justify-center text-slate-400 z-0">
                             <div class="bg-white p-4 rounded-full shadow-sm mb-4">
-                                <svg class="w-10 h-10 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <svg class="w-10 h-10 text-blue-500" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                         d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -91,7 +95,8 @@
                     <div class="p-0 flex-1 overflow-y-auto max-h-[500px]">
                         @if ($absens->isEmpty())
                             <div class="p-8 text-center text-slate-500 h-full flex flex-col items-center justify-center">
-                                <svg class="h-10 w-10 text-slate-300 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <svg class="h-10 w-10 text-slate-300 mb-2" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
@@ -102,20 +107,26 @@
                                 @foreach ($absens as $absen)
                                     <li class="p-4 hover:bg-slate-50 transition-colors">
                                         <div class="flex items-center gap-3">
-                                            <div class="flex-shrink-0 h-10 w-10 rounded-full {{ str_contains($absen->present_desc_system, 'Masuk') ? 'bg-emerald-100 text-emerald-600' : 'bg-orange-100 text-orange-600' }} flex items-center justify-center">
-                                                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <div
+                                                class="flex-shrink-0 h-10 w-10 rounded-full {{ str_contains($absen->present_desc_system, 'Masuk') ? 'bg-emerald-100 text-emerald-600' : 'bg-orange-100 text-orange-600' }} flex items-center justify-center">
+                                                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                                                    stroke="currentColor">
                                                     @if (str_contains($absen->present_desc_system, 'Masuk'))
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2"
                                                             d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
                                                     @else
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2"
                                                             d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                                                     @endif
                                                 </svg>
                                             </div>
                                             <div>
-                                                <p class="text-sm font-bold text-slate-800">{{ $absen->present_desc_system }}</p>
-                                                <p class="text-xs text-slate-500">{{ $absen->time }} WIB &bull; {{ $absen->shift->shift_name ?? 'Harian' }}</p>
+                                                <p class="text-sm font-bold text-slate-800">
+                                                    {{ $absen->present_desc_system }}</p>
+                                                <p class="text-xs text-slate-500">{{ $absen->time }} WIB &bull;
+                                                    {{ $absen->shift->shift_name ?? 'Harian' }}</p>
                                             </div>
                                         </div>
                                     </li>
@@ -142,68 +153,73 @@
         let capturedFaceImage = null;
 
         // Koordinat & radius kantor (dari .env via blade)
-        const OFFICE_LAT  = {{ env('OFFICE_LAT', -6.9824624) }};
-        const OFFICE_LNG  = {{ env('OFFICE_LNG', 107.7540507) }};
-        const MAX_RADIUS  = {{ env('OFFICE_RADIUS_METER', 50) }};
+        const OFFICE_LAT = {{ env('OFFICE_LAT', -6.9824624) }};
+        const OFFICE_LNG = {{ env('OFFICE_LNG', 107.7540507) }};
+        const MAX_RADIUS = {{ env('OFFICE_RADIUS_METER', 50) }};
 
         // =============================================
         // HITUNG JARAK (JS)
         // =============================================
         function haversineJS(lat1, lng1, lat2, lng2) {
-            const R    = 6371000;
+            const R = 6371000;
             const dLat = (lat2 - lat1) * Math.PI / 180;
             const dLng = (lng2 - lng1) * Math.PI / 180;
-            const a    = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLng/2)**2;
-            return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+            const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(
+                dLng / 2) ** 2;
+            return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
         }
 
         function formatDistance(meter) {
-            return meter >= 1000 ? (meter/1000).toFixed(1) + ' km' : meter + ' m';
+            return meter >= 1000 ? (meter / 1000).toFixed(1) + ' km' : meter + ' m';
         }
 
         // =============================================
         // UPDATE UI KARTU LOKASI
         // =============================================
         function updateLocationUI(state, customMsg, distance) {
-            const card   = document.getElementById('location-status');
-            const icon   = document.getElementById('loc-icon');
-            const title  = document.getElementById('loc-title');
-            const desc   = document.getElementById('loc-desc');
-            const badge  = document.getElementById('loc-badge');
+            const card = document.getElementById('location-status');
+            const icon = document.getElementById('loc-icon');
+            const title = document.getElementById('loc-title');
+            const desc = document.getElementById('loc-desc');
+            const badge = document.getElementById('loc-badge');
             const distEl = document.getElementById('loc-distance');
 
             if (state === 'ok') {
-                card.className  = 'rounded-xl border border-emerald-200 bg-emerald-50 shadow-sm p-4 flex items-center gap-4';
-                icon.className  = 'flex-shrink-0 h-12 w-12 rounded-full bg-emerald-100 flex items-center justify-center';
-                icon.innerHTML  = `<svg class="h-6 w-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>`;
+                card.className = 'rounded-xl border border-emerald-200 bg-emerald-50 shadow-sm p-4 flex items-center gap-4';
+                icon.className = 'flex-shrink-0 h-12 w-12 rounded-full bg-emerald-100 flex items-center justify-center';
+                icon.innerHTML =
+                    `<svg class="h-6 w-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>`;
                 title.textContent = '✅ Kamu berada di dalam area kantor';
                 title.className = 'text-sm font-semibold text-emerald-700';
-                desc.textContent  = 'Absensi dapat dilakukan. Silakan scan QR Code.';
-                desc.className  = 'text-xs text-emerald-600 mt-0.5';
+                desc.textContent = 'Absensi dapat dilakukan. Silakan scan QR Code.';
+                desc.className = 'text-xs text-emerald-600 mt-0.5';
                 badge.classList.remove('hidden');
                 distEl.textContent = formatDistance(distance);
-                distEl.className   = 'text-2xl font-bold text-emerald-600';
+                distEl.className = 'text-2xl font-bold text-emerald-600';
 
             } else if (state === 'far') {
-                card.className  = 'rounded-xl border border-red-200 bg-red-50 shadow-sm p-4 flex items-center gap-4';
-                icon.className  = 'flex-shrink-0 h-12 w-12 rounded-full bg-red-100 flex items-center justify-center';
-                icon.innerHTML  = `<svg class="h-6 w-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>`;
+                card.className = 'rounded-xl border border-red-200 bg-red-50 shadow-sm p-4 flex items-center gap-4';
+                icon.className = 'flex-shrink-0 h-12 w-12 rounded-full bg-red-100 flex items-center justify-center';
+                icon.innerHTML =
+                    `<svg class="h-6 w-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>`;
                 title.textContent = '❌ Kamu di luar area kantor';
                 title.className = 'text-sm font-semibold text-red-700';
-                desc.textContent  = `Kamu harus berada dalam radius ${MAX_RADIUS}m dari kantor. Sekarang kamu ${formatDistance(distance)} dari kantor.`;
-                desc.className  = 'text-xs text-red-500 mt-0.5';
+                desc.textContent =
+                    `Kamu harus berada dalam radius ${MAX_RADIUS}m dari kantor. Sekarang kamu ${formatDistance(distance)} dari kantor.`;
+                desc.className = 'text-xs text-red-500 mt-0.5';
                 badge.classList.remove('hidden');
                 distEl.textContent = formatDistance(distance);
-                distEl.className   = 'text-2xl font-bold text-red-600';
+                distEl.className = 'text-2xl font-bold text-red-600';
 
             } else if (state === 'denied') {
-                card.className  = 'rounded-xl border border-amber-200 bg-amber-50 shadow-sm p-4 flex items-center gap-4';
-                icon.className  = 'flex-shrink-0 h-12 w-12 rounded-full bg-amber-100 flex items-center justify-center';
-                icon.innerHTML  = `<svg class="h-6 w-6 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>`;
+                card.className = 'rounded-xl border border-amber-200 bg-amber-50 shadow-sm p-4 flex items-center gap-4';
+                icon.className = 'flex-shrink-0 h-12 w-12 rounded-full bg-amber-100 flex items-center justify-center';
+                icon.innerHTML =
+                    `<svg class="h-6 w-6 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>`;
                 title.textContent = '⚠️ Izin lokasi diperlukan';
                 title.className = 'text-sm font-semibold text-amber-700';
-                desc.textContent  = customMsg ?? 'Aktifkan izin lokasi di browser untuk melakukan absensi.';
-                desc.className  = 'text-xs text-amber-600 mt-0.5';
+                desc.textContent = customMsg ?? 'Aktifkan izin lokasi di browser untuk melakukan absensi.';
+                desc.className = 'text-xs text-amber-600 mt-0.5';
                 badge.classList.add('hidden');
             }
         }
@@ -218,15 +234,16 @@
             }
             navigator.geolocation.watchPosition(
                 (pos) => {
-                    userLatitude  = pos.coords.latitude;
+                    userLatitude = pos.coords.latitude;
                     userLongitude = pos.coords.longitude;
-                    const distance  = haversineJS(userLatitude, userLongitude, OFFICE_LAT, OFFICE_LNG);
+                    const distance = haversineJS(userLatitude, userLongitude, OFFICE_LAT, OFFICE_LNG);
                     updateLocationUI(distance <= MAX_RADIUS ? 'ok' : 'far', null, distance);
                 },
                 (err) => {
                     updateLocationUI('denied', 'Izin lokasi ditolak. Aktifkan GPS di pengaturan browser kamu.');
-                },
-                { enableHighAccuracy: true }
+                }, {
+                    enableHighAccuracy: true
+                }
             );
         }
         getLocation();
@@ -243,6 +260,7 @@
 
         document.getElementById('stop-camera').addEventListener('click', function() {
             if (html5QrcodeScanner) html5QrcodeScanner.clear();
+            html5QrcodeScanner = null;
             this.classList.add('hidden');
             document.getElementById('start-camera').classList.remove('hidden');
             document.getElementById('camera-placeholder').classList.remove('hidden');
@@ -252,50 +270,67 @@
         // SCANNER QR
         // =============================================
         function startScanner() {
-            html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: { width: 250, height: 250 } }, false);
+            html5QrcodeScanner = new Html5QrcodeScanner("reader", {
+                fps: 10,
+                qrbox: {
+                    width: 250,
+                    height: 250
+                }
+            }, false);
             html5QrcodeScanner.render(onScanSuccess, () => {});
         }
 
         function onScanSuccess(decodedText) {
-            html5QrcodeScanner.pause();
+            // Stop scanner dulu biar kamera bebas untuk face detection
+            html5QrcodeScanner.clear();
+            document.getElementById('camera-placeholder').classList.remove('hidden');
 
             if (!userLatitude || !userLongitude) {
                 Swal.fire('Lokasi Belum Siap', 'Tunggu sebentar, GPS sedang diambil. Coba lagi.', 'warning')
-                    .then(() => html5QrcodeScanner.resume());
+                    .then(() => {
+                        document.getElementById('camera-placeholder').classList.add('hidden');
+                        startScanner();
+                    });
                 return;
             }
 
-            // Cek radius dulu sebelum lanjut
             const distance = haversineJS(userLatitude, userLongitude, OFFICE_LAT, OFFICE_LNG);
             if (distance > MAX_RADIUS) {
                 Swal.fire({
                     icon: 'error',
                     title: 'Di Luar Area Kantor',
                     html: `Kamu berada <b>${formatDistance(distance)}</b> dari kantor.<br>Absensi hanya bisa dilakukan dalam radius <b>${MAX_RADIUS}m</b>.`,
-                }).then(() => html5QrcodeScanner.resume());
+                }).then(() => startScanner());
                 return;
             }
 
             fetch("{{ route('user.scanCheck') }}", {
-                method: "POST",
-                headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": csrfToken },
-                body: JSON.stringify({ code_qr: decodedText })
-            })
-            .then(r => r.json())
-            .then(data => {
-                if (data.success) {
-                    showFaceVerification(data.data);
-                } else {
-                    Swal.fire('Gagal', data.message, 'error').then(() => html5QrcodeScanner.resume());
-                }
-            });
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRF-TOKEN": csrfToken
+                    },
+                    body: JSON.stringify({
+                        code_qr: decodedText
+                    })
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        showFaceVerification(data.data);
+                    } else {
+                        Swal.fire('Gagal', data.message, 'error').then(() => startScanner());
+                    }
+                });
         }
 
         // =============================================
         // FACE VERIFICATION
         // =============================================
         async function showFaceVerification(qrData) {
-            const { value: confirmed } = await Swal.fire({
+            const {
+                value: confirmed
+            } = await Swal.fire({
                 title: `QR Terbaca: Absen ${qrData.present_type}`,
                 html: `
                     <p class="text-sm text-slate-500 mb-3">Verifikasi wajah diperlukan sebelum absen.</p>
@@ -334,7 +369,7 @@
         let faceInterval = null;
 
         async function startFaceDetection() {
-            const video  = document.getElementById('face-video');
+            const video = document.getElementById('face-video');
             const overlay = document.getElementById('face-overlay');
             const status = document.getElementById('face-status');
 
@@ -345,7 +380,11 @@
                     faceapi.nets.faceLandmark68TinyNet.loadFromUri(MODEL_URL),
                 ]);
 
-                faceStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+                faceStream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: 'user'
+                    }
+                });
                 video.srcObject = faceStream;
                 status.textContent = 'Kamera aktif. Hadapkan wajah ke kamera...';
 
@@ -354,12 +393,15 @@
                     ctx.clearRect(0, 0, overlay.width, overlay.height);
 
                     const detection = await faceapi.detectSingleFace(
-                        video, new faceapi.TinyFaceDetectorOptions({ scoreThreshold: 0.5 })
+                        video, new faceapi.TinyFaceDetectorOptions({
+                            scoreThreshold: 0.5
+                        })
                     ).withFaceLandmarks(true);
 
                     if (detection) {
                         faceDetected = true;
-                        status.innerHTML = '<span style="color:#16a34a;font-weight:bold">✅ Wajah terdeteksi! Klik Absen Sekarang.</span>';
+                        status.innerHTML =
+                            '<span style="color:#16a34a;font-weight:bold">✅ Wajah terdeteksi! Klik Absen Sekarang.</span>';
                         const dims = faceapi.matchDimensions(overlay, video, true);
                         faceapi.draw.drawDetections(overlay, faceapi.resizeResults(detection, dims));
                         const capCanvas = document.getElementById('face-capture');
@@ -387,25 +429,34 @@
         // =============================================
         function prosesAbsen(qrId) {
             fetch("{{ route('user.scanStore') }}", {
-                method: "POST",
-                headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": csrfToken },
-                body: JSON.stringify({
-                    qr_id:      qrId,
-                    status:     'Hadir',
-                    face_image: capturedFaceImage,
-                    latitude:   userLatitude,
-                    longitude:  userLongitude,
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRF-TOKEN": csrfToken
+                    },
+                    body: JSON.stringify({
+                        qr_id: qrId,
+                        status: 'Hadir',
+                        face_image: capturedFaceImage,
+                        latitude: userLatitude,
+                        longitude: userLongitude,
+                    })
                 })
-            })
-            .then(r => r.json())
-            .then(data => {
-                if (data.success) {
-                    Swal.fire({ icon: 'success', title: 'Berhasil!', text: data.message, timer: 2000, showConfirmButton: false })
-                        .then(() => location.reload());
-                } else {
-                    Swal.fire('Gagal', data.message, 'error').then(() => html5QrcodeScanner.resume());
-                }
-            });
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil!',
+                                text: data.message,
+                                timer: 2000,
+                                showConfirmButton: false
+                            })
+                            .then(() => location.reload());
+                    } else {
+                        Swal.fire('Gagal', data.message, 'error').then(() => html5QrcodeScanner.resume());
+                    }
+                });
         }
     </script>
 @endsection
