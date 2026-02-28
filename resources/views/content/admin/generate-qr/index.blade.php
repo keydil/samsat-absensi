@@ -82,7 +82,7 @@
 
         <div class="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
             <div class="border-b border-slate-100 bg-white px-6 py-4">
-                <h3 class="font-bold text-slate-800">Daftar QR Code Aktif</h3>
+                <h3 class="font-bold text-slate-800">Daftar QR Code Absensi</h3>
             </div>
 
             <div class="overflow-x-auto">
@@ -104,11 +104,9 @@
                                 <td class="px-6 py-4">{{ $loop->iteration }}</td>
                                 <td class="px-6 py-4">
                                     @if ($qr->present == 'in_present')
-                                        <span
-                                            class="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-700/10">Masuk</span>
+                                        <span class="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-700/10">Masuk</span>
                                     @else
-                                        <span
-                                            class="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium bg-orange-50 text-orange-700 ring-1 ring-inset ring-orange-600/20">Pulang</span>
+                                        <span class="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium bg-orange-50 text-orange-700 ring-1 ring-inset ring-orange-600/20">Pulang</span>
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 font-semibold text-slate-800">
@@ -121,29 +119,51 @@
                                 <td class="px-6 py-4">{{ $qr->date }}</td>
                                 <td class="px-6 py-4 text-center">
                                     @if ($qr->status == 'active')
-                                        <span
-                                            class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20">
+                                        <span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20">
                                             <span class="h-1.5 w-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
                                             Aktif
                                         </span>
+                                    @elseif ($qr->status == 'pending')
+                                        <span class="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-600/20">
+                                            <span class="h-1.5 w-1.5 rounded-full bg-blue-400"></span>
+                                            Terjadwal
+                                        </span>
                                     @else
-                                        <span
-                                            class="inline-flex items-center rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600 ring-1 ring-inset ring-slate-500/10">
+                                        <span class="inline-flex items-center rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600 ring-1 ring-inset ring-slate-500/10">
                                             Expired
                                         </span>
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 text-center">
-                                    <a href="{{ route('admin.generate-qr.show', $qr->code_qr) }}"
-                                        class="inline-flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 transition-colors shadow-sm">
-                                        <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                        </svg>
-                                        Lihat QR
-                                    </a>
+                                    <div class="flex items-center justify-center gap-2">
+                                        <a href="{{ route('admin.generate-qr.show', $qr->code_qr) }}"
+                                            class="inline-flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 transition-colors shadow-sm">
+                                            <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                            </svg>
+                                            Lihat QR
+                                        </a>
+
+                                        {{-- Hanya tampil tombol hapus kalau bukan expired --}}
+                                        @if ($qr->status !== 'expired')
+                                            <form action="{{ route('admin.generate-qr.destroy', $qr->id) }}" method="POST"
+                                                onsubmit="return confirm('Yakin hapus QR Code ini?')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit"
+                                                    class="inline-flex items-center gap-1 rounded-lg bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100 transition-colors border border-red-200">
+                                                    <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                    </svg>
+                                                    Hapus
+                                                </button>
+                                            </form>
+                                        @endif
+                                    </div>
                                 </td>
                             </tr>
                         @empty
@@ -155,7 +175,7 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M12 4v1m6 11h2m-6 0h-2v4h-4v-4H8m13-4V7a1 1 0 00-1-1H4a1 1 0 00-1 1v3M4 7h16" />
                                         </svg>
-                                        <p>Belum ada QR Code aktif. Silahkan buat baru di atas.</p>
+                                        <p>Belum ada QR Code. Silahkan buat baru di atas.</p>
                                     </div>
                                 </td>
                             </tr>

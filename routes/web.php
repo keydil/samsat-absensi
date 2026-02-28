@@ -62,6 +62,7 @@ Route::middleware(['RoleUser:Admin'])->group(function () {
     Route::put('/dashboard/admin/data/user/{user}', [DataUserController::class, 'update'])->name('admin.dataUser.update');
     Route::delete('/dashboard/admin/data/user/{user}', [DataUserController::class, 'destroy'])->name('admin.dataUser.destroy');
     Route::get('/dashboard/admin/generate-qr', [GenerateQRController::class, 'index'])->name('admin.generate-qr');
+    Route::delete('/dashboard/admin/generate-qr/{id}', [GenerateQRController::class, 'destroy'])->name('admin.generate-qr.destroy');
     Route::post('/dashboard/admin/generate-qr/store', [GenerateQRController::class, 'store'])->name('admin.generate-qr.store');
     Route::get('/dashboard/admin/generate-qr/show/{code}', [GenerateQRController::class, 'show'])->name('admin.generate-qr.show');
     // Route Rekap Absensi

@@ -85,4 +85,11 @@ class GenerateQRController extends Controller
         $showQR = QrCode::size(200)->generate($code);
         return view('content.admin.generate-qr.show', compact('qr', 'showQR'));
     }
+
+    public function destroy($id)
+{
+    $qr = QrCodeModel::findOrFail($id);
+    $qr->delete();
+    return redirect()->back()->with('message', 'QR Code berhasil dihapus!');
+}
 }
