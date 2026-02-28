@@ -106,7 +106,7 @@
                                         {{ $log->user->name ?? 'User Terhapus' }}
                                     </td>
                                     <td class="px-6 py-3">
-                                        {{ $log->present_desc_system }} <span class="text-xs text-slate-400">({{ $log->shift->shift_name }})</span>
+                                        {{ $log->present_desc_system }} <span class="text-xs text-slate-400">({{ $log->shift->shift_name ?? 'Harian' }})</span>
                                     </td>
                                     <td class="px-6 py-3 font-mono text-xs">
                                         {{ \Carbon\Carbon::parse($log->created_at)->diffForHumans() }}

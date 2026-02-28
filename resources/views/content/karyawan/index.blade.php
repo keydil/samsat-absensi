@@ -63,7 +63,7 @@
                     <div>
                         <p class="text-sm font-medium text-slate-500">Shift Hari Ini</p>
                         <p class="text-lg font-bold text-slate-900">
-                            {{ $riwayat->first() && \Carbon\Carbon::parse($riwayat->first()->created_at)->isToday() ? $riwayat->first()->shift->shift_name : 'Belum Absen' }}
+                            {{ $riwayat->first() && \Carbon\Carbon::parse($riwayat->first()->created_at)->isToday() ? $riwayat->first()->shift->shift_name ?? 'Harian' : 'Belum Absen' }}
                         </p>
                     </div>
                 </div>
