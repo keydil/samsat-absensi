@@ -151,14 +151,13 @@
         let userLongitude = null;
         let faceDetected = false;
         let capturedFaceImage = null;
+        let faceStream = null;
+        let faceInterval = null;
 
         const OFFICE_LAT = {{ env('OFFICE_LAT', -6.9824624) }};
         const OFFICE_LNG = {{ env('OFFICE_LNG', 107.7540507) }};
         const MAX_RADIUS = {{ env('OFFICE_RADIUS_METER', 50) }};
 
-        // =============================================
-        // HITUNG JARAK
-        // =============================================
         function haversineJS(lat1, lng1, lat2, lng2) {
             const R = 6371000;
             const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -172,9 +171,6 @@
             return meter >= 1000 ? (meter / 1000).toFixed(1) + ' km' : meter + ' m';
         }
 
-        // =============================================
-        // UPDATE UI LOKASI
-        // =============================================
         function updateLocationUI(state, customMsg, distance) {
             const card = document.getElementById('location-status');
             const icon = document.getElementById('loc-icon');
@@ -221,9 +217,6 @@
             }
         }
 
-        // =============================================
-        // GPS
-        // =============================================
         function getLocation() {
             if (!navigator.geolocation) {
                 updateLocationUI('denied', 'Browser tidak mendukung GPS.');
@@ -246,29 +239,19 @@
         }
         getLocation();
 
-        // =============================================
-        // TOMBOL KAMERA
-        // =============================================
         document.getElementById('start-camera').addEventListener('click', function() {
             startScanner();
-            this.classList.add('hidden');
-            document.getElementById('stop-camera').classList.remove('hidden');
-            document.getElementById('camera-placeholder').classList.add('hidden');
         });
 
         document.getElementById('stop-camera').addEventListener('click', function() {
             if (html5QrcodeScanner) html5QrcodeScanner.clear();
             html5QrcodeScanner = null;
-            this.classList.add('hidden');
+            document.getElementById('stop-camera').classList.add('hidden');
             document.getElementById('start-camera').classList.remove('hidden');
             document.getElementById('camera-placeholder').classList.remove('hidden');
         });
 
-        // =============================================
-        // SCANNER QR
-        // =============================================
         function startScanner() {
-            // Bersihkan reader div dulu biar ga dobel
             document.getElementById('reader').innerHTML = '';
             html5QrcodeScanner = new Html5QrcodeScanner("reader", {
                 fps: 10,
@@ -325,9 +308,6 @@
                 });
         }
 
-        // =============================================
-        // FACE VERIFICATION
-        // =============================================
         async function showFaceVerification(qrData) {
             faceDetected = false;
             capturedFaceImage = null;
@@ -350,7 +330,7 @@
                 cancelButtonText: 'Batal',
                 confirmButtonColor: '#2563eb',
                 didOpen: () => startFaceDetection(),
-                willClose: () => stopFaceCamera(),
+                willClose: () => stopFaceCameraOnly(), // ← hanya stop kamera, TIDAK reset foto
                 preConfirm: () => {
                     if (!faceDetected) {
                         Swal.showValidationMessage('Wajah tidak terdeteksi! Hadapkan wajah ke kamera.');
@@ -366,14 +346,19 @@
             });
 
             if (confirmed) {
-                prosesAbsen(qrData.qr_id);
+                prosesAbsen(qrData.qr_id); // capturedFaceImage masih ada
             } else {
+                capturedFaceImage = null; // reset hanya kalau batal
                 startScanner();
             }
         }
 
-        let faceStream = null;
-        let faceInterval = null;
+        // Stop kamera TANPA reset capturedFaceImage
+        function stopFaceCameraOnly() {
+            if (faceInterval) clearInterval(faceInterval);
+            if (faceStream) faceStream.getTracks().forEach(t => t.stop());
+            faceDetected = false;
+        }
 
         async function startFaceDetection() {
             const video = document.getElementById('face-video');
@@ -396,15 +381,12 @@
                         },
                         height: {
                             ideal: 240
-                        },
+                        }
                     }
                 });
                 video.srcObject = faceStream;
-
-                // Brighten video tampilan biar keliatan di kondisi gelap
                 video.style.filter = 'brightness(1.4) contrast(1.1)';
 
-                // Tunggu video siap
                 await new Promise((resolve) => {
                     video.onloadedmetadata = () => {
                         video.play();
@@ -412,7 +394,6 @@
                     };
                 });
 
-                // Set ukuran canvas sesuai video
                 const w = video.videoWidth || 320;
                 const h = video.videoHeight || 240;
                 overlay.width = w;
@@ -457,17 +438,9 @@
             }
         }
 
-        function stopFaceCamera() {
-            if (faceInterval) clearInterval(faceInterval);
-            if (faceStream) faceStream.getTracks().forEach(t => t.stop());
-            faceDetected = false;
-            capturedFaceImage = null;
-        }
-
-        // =============================================
-        // PROSES ABSEN
-        // =============================================
         function prosesAbsen(qrId) {
+            const fotoYangDikirim = capturedFaceImage; // simpan dulu sebelum direset
+
             fetch("{{ route('user.scanStore') }}", {
                     method: "POST",
                     headers: {
@@ -477,7 +450,7 @@
                     body: JSON.stringify({
                         qr_id: qrId,
                         status: 'Hadir',
-                        face_image: capturedFaceImage,
+                        face_image: fotoYangDikirim,
                         latitude: userLatitude,
                         longitude: userLongitude,
                     })
