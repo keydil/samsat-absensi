@@ -117,10 +117,30 @@ class ScanQRController extends Controller
         try {
             if ($request->filled('face_image')) {
                 if (app()->environment('production')) {
-                    $imageData = preg_replace('#^data:image/\w+;base64,#i', '', $request->face_image);
+                    $imageData = $request->face_image;
+
+                    // Cek apakah ada data:image prefix
+                    if (strpos($imageData, 'data:image') === 0) {
+                        $imageData = preg_replace('#^data:image/\w+;base64,#i', '', $imageData);
+                    }
+
                     $imageDecoded = base64_decode($imageData);
-                    $tempPath = tempnam(sys_get_temp_dir(), 'face_') . '.jpg';
-                    file_put_contents($tempPath, $imageDecoded);
+
+                    if ($imageDecoded === false) {
+                        return response()->json(['success' => false, 'message' => 'DEBUG: base64_decode gagal']);
+                    }
+
+                    $tempDir = sys_get_temp_dir();
+                    $tempPath = $tempDir . '/face_' . $user->id . '_' . time() . '.jpg';
+
+                    $written = file_put_contents($tempPath, $imageDecoded);
+                    if ($written === false) {
+                        return response()->json(['success' => false, 'message' => 'DEBUG: gagal tulis temp file ke ' . $tempDir]);
+                    }
+
+                    if (!file_exists($tempPath)) {
+                        return response()->json(['success' => false, 'message' => 'DEBUG: temp file tidak ada setelah ditulis']);
+                    }
 
                     $result = cloudinary()
                         ->uploadApi()
@@ -129,15 +149,9 @@ class ScanQRController extends Controller
                             'public_id' => 'face_' . $user->id . '_' . time(),
                         ]);
 
-                    // DEBUG SEMENTARA - hapus setelah ketauan masalahnya
-                    \Log::info('Cloudinary result', ['result' => json_encode($result)]);
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'DEBUG: ' . json_encode(array_keys((array) $result)),
-                    ]);
+                    return response()->json(['success' => false, 'message' => 'DEBUG result: ' . json_encode($result)]);
 
                     $faceImagePath = $result['secure_url'];
-
                     @unlink($tempPath);
                 } else {
                     $imageData = preg_replace('#^data:image/\w+;base64,#i', '', $request->face_image);
