@@ -117,41 +117,27 @@ class ScanQRController extends Controller
         try {
             if ($request->filled('face_image')) {
                 if (app()->environment('production')) {
-                    $imageData = $request->face_image;
-
-                    // Cek apakah ada data:image prefix
-                    if (strpos($imageData, 'data:image') === 0) {
-                        $imageData = preg_replace('#^data:image/\w+;base64,#i', '', $imageData);
-                    }
-
+                    $imageData = preg_replace('#^data:image/\w+;base64,#i', '', $request->face_image);
                     $imageDecoded = base64_decode($imageData);
+                    $tempPath = sys_get_temp_dir() . '/face_' . $user->id . '_' . time() . '.jpg';
+                    file_put_contents($tempPath, $imageDecoded);
 
-                    if ($imageDecoded === false) {
-                        return response()->json(['success' => false, 'message' => 'DEBUG: base64_decode gagal']);
-                    }
-
-                    $tempDir = sys_get_temp_dir();
-                    $tempPath = $tempDir . '/face_' . $user->id . '_' . time() . '.jpg';
-
-                    $written = file_put_contents($tempPath, $imageDecoded);
-                    if ($written === false) {
-                        return response()->json(['success' => false, 'message' => 'DEBUG: gagal tulis temp file ke ' . $tempDir]);
-                    }
-
-                    if (!file_exists($tempPath)) {
-                        return response()->json(['success' => false, 'message' => 'DEBUG: temp file tidak ada setelah ditulis']);
-                    }
-
-                    $result = cloudinary()
-                        ->uploadApi()
-                        ->upload($tempPath, [
-                            'folder' => 'absensi-faces',
-                            'public_id' => 'face_' . $user->id . '_' . time(),
+                    try {
+                        $result = cloudinary()
+                            ->uploadApi()
+                            ->upload($tempPath, [
+                                'folder' => 'absensi-faces',
+                                'public_id' => 'face_' . $user->id . '_' . time(),
+                            ]);
+                        $faceImagePath = $result['secure_url'];
+                    } catch (\Exception $cloudinaryError) {
+                        @unlink($tempPath);
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Cloudinary error: ' . $cloudinaryError->getMessage() . ' | Class: ' . get_class($cloudinaryError),
                         ]);
+                    }
 
-                    return response()->json(['success' => false, 'message' => 'DEBUG result: ' . json_encode($result)]);
-
-                    $faceImagePath = null;
                     @unlink($tempPath);
                 } else {
                     $imageData = preg_replace('#^data:image/\w+;base64,#i', '', $request->face_image);
