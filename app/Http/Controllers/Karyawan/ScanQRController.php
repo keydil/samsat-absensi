@@ -129,10 +129,11 @@ class ScanQRController extends Controller
                             'public_id' => 'face_' . $user->id . '_' . time(),
                         ]);
 
-                    // Debug sementara - liat isi $result
+                    // DEBUG SEMENTARA - hapus setelah ketauan masalahnya
+                    \Log::info('Cloudinary result', ['result' => json_encode($result)]);
                     return response()->json([
                         'success' => false,
-                        'message' => 'DEBUG result: ' . json_encode($result),
+                        'message' => 'DEBUG: ' . json_encode(array_keys((array) $result)),
                     ]);
 
                     $faceImagePath = $result['secure_url'];
