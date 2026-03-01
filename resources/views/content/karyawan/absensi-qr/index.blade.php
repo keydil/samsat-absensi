@@ -156,6 +156,9 @@
         const OFFICE_LNG = {{ env('OFFICE_LNG', 107.7540507) }};
         const MAX_RADIUS = {{ env('OFFICE_RADIUS_METER', 50) }};
 
+        // =============================================
+        // HITUNG JARAK
+        // =============================================
         function haversineJS(lat1, lng1, lat2, lng2) {
             const R = 6371000;
             const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -169,6 +172,9 @@
             return meter >= 1000 ? (meter / 1000).toFixed(1) + ' km' : meter + ' m';
         }
 
+        // =============================================
+        // UPDATE UI LOKASI
+        // =============================================
         function updateLocationUI(state, customMsg, distance) {
             const card = document.getElementById('location-status');
             const icon = document.getElementById('loc-icon');
@@ -215,12 +221,15 @@
             }
         }
 
+        // =============================================
+        // GPS
+        // =============================================
         function getLocation() {
             if (!navigator.geolocation) {
                 updateLocationUI('denied', 'Browser tidak mendukung GPS.');
                 return;
             }
-            navigator.geolocation.watchPosition(
+            navigator.geolocation.getCurrentPosition(
                 (pos) => {
                     userLatitude = pos.coords.latitude;
                     userLongitude = pos.coords.longitude;
@@ -230,12 +239,16 @@
                 (err) => {
                     updateLocationUI('denied', 'Izin lokasi ditolak. Aktifkan GPS di pengaturan browser kamu.');
                 }, {
-                    enableHighAccuracy: true
+                    enableHighAccuracy: true,
+                    timeout: 10000
                 }
             );
         }
         getLocation();
 
+        // =============================================
+        // TOMBOL KAMERA
+        // =============================================
         document.getElementById('start-camera').addEventListener('click', function() {
             startScanner();
             this.classList.add('hidden');
@@ -251,7 +264,12 @@
             document.getElementById('camera-placeholder').classList.remove('hidden');
         });
 
+        // =============================================
+        // SCANNER QR
+        // =============================================
         function startScanner() {
+            // Bersihkan reader div dulu biar ga dobel
+            document.getElementById('reader').innerHTML = '';
             html5QrcodeScanner = new Html5QrcodeScanner("reader", {
                 fps: 10,
                 qrbox: {
@@ -260,17 +278,20 @@
                 }
             }, false);
             html5QrcodeScanner.render(onScanSuccess, () => {});
+            document.getElementById('stop-camera').classList.remove('hidden');
+            document.getElementById('start-camera').classList.add('hidden');
+            document.getElementById('camera-placeholder').classList.add('hidden');
         }
 
         function onScanSuccess(decodedText) {
             html5QrcodeScanner.clear();
             document.getElementById('camera-placeholder').classList.remove('hidden');
+            document.getElementById('stop-camera').classList.add('hidden');
+            document.getElementById('start-camera').classList.remove('hidden');
 
             if (!userLatitude || !userLongitude) {
                 Swal.fire('Lokasi Belum Siap', 'Tunggu sebentar, GPS sedang diambil. Coba lagi.', 'warning')
-                    .then(() => {
-                        startScanner();
-                    });
+                    .then(() => startScanner());
                 return;
             }
 
@@ -304,8 +325,10 @@
                 });
         }
 
+        // =============================================
+        // FACE VERIFICATION
+        // =============================================
         async function showFaceVerification(qrData) {
-            // Reset dulu sebelum buka modal
             faceDetected = false;
             capturedFaceImage = null;
 
@@ -374,19 +397,14 @@
                         height: {
                             ideal: 240
                         },
-                        // Setting biar lebih terang di kondisi gelap
-                        brightness: {
-                            ideal: 100
-                        },
-                        exposureMode: 'continuous',
-                        whiteBalanceMode: 'continuous',
                     }
                 });
                 video.srcObject = faceStream;
-                // Setelah video.srcObject = faceStream;
+
+                // Brighten video tampilan biar keliatan di kondisi gelap
                 video.style.filter = 'brightness(1.4) contrast(1.1)';
 
-                // Tunggu video bener-bener siap & playing
+                // Tunggu video siap
                 await new Promise((resolve) => {
                     video.onloadedmetadata = () => {
                         video.play();
@@ -394,7 +412,7 @@
                     };
                 });
 
-                // Set ukuran canvas sesuai video asli
+                // Set ukuran canvas sesuai video
                 const w = video.videoWidth || 320;
                 const h = video.videoHeight || 240;
                 overlay.width = w;
@@ -404,13 +422,14 @@
 
                 status.textContent = 'Kamera aktif. Hadapkan wajah ke kamera...';
 
-                // Mulai deteksi SETELAH video siap
                 faceInterval = setInterval(async () => {
-                        if (video.readyState < 2) return; // skip kalau video belum siap
+                    if (video.readyState < 2) return;
 
-                        const ctx = overlay.getContext('2d');
-                        ctx.clearRect(0, 0, overlay.width, overlay.height);
+                    const ctx = overlay.getContext('2d');
+                    ctx.clearRect(0, 0, overlay.width, overlay.height);
 
+                    const detection = await faceapi.detectSingleFace(
+                        video,
                         new faceapi.TinyFaceDetectorOptions({
                             scoreThreshold: 0.3,
                             inputSize: 416
@@ -425,7 +444,6 @@
                         const dims = faceapi.matchDimensions(overlay, video, true);
                         faceapi.draw.drawDetections(overlay, faceapi.resizeResults(detection, dims));
 
-                        // Capture foto
                         capture.getContext('2d').drawImage(video, 0, 0, capture.width, capture.height);
                         capturedFaceImage = capture.toDataURL('image/jpeg', 0.8);
                     } else {
@@ -434,9 +452,9 @@
                     }
                 }, 500);
 
-        } catch (err) {
-            status.textContent = 'Gagal akses kamera: ' + err.message;
-        }
+            } catch (err) {
+                status.textContent = 'Gagal akses kamera: ' + err.message;
+            }
         }
 
         function stopFaceCamera() {
@@ -446,6 +464,9 @@
             capturedFaceImage = null;
         }
 
+        // =============================================
+        // PROSES ABSEN
+        // =============================================
         function prosesAbsen(qrId) {
             fetch("{{ route('user.scanStore') }}", {
                     method: "POST",
