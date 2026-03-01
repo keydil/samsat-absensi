@@ -333,15 +333,16 @@
             } = await Swal.fire({
                 title: `QR Terbaca: Absen ${qrData.present_type}`,
                 html: `
-                    <p class="text-sm text-slate-500 mb-3">Verifikasi wajah diperlukan sebelum absen.</p>
-                    <div style="position:relative;display:inline-block">
-                        <video id="face-video" width="280" height="210"
-                            style="border-radius:12px;background:#000;display:block" autoplay muted playsinline></video>
-                        <canvas id="face-overlay" width="280" height="210"
-                            style="position:absolute;top:0;left:0;border-radius:12px"></canvas>
-                    </div>
-                    <canvas id="face-capture" width="280" height="210" style="display:none"></canvas>
-                    <p id="face-status" class="text-xs mt-2 text-slate-500">Memuat model deteksi wajah...</p>
+                <p class="text-sm text-slate-500 mb-3">Verifikasi wajah diperlukan sebelum absen.</p>
+                <div style="position:relative;display:inline-block;width:100%">
+                <video id="face-video"
+                style="border-radius:12px;background:#000;display:block;width:100%" 
+                autoplay muted playsinline></video>
+                <canvas id="face-overlay"
+                style="position:absolute;top:0;left:0;border-radius:12px;width:100%"></canvas>
+                 </div>
+                <canvas id="face-capture" style="display:none"></canvas>
+                <p id="face-status" class="text-xs mt-2 text-slate-500">Memuat model deteksi wajah...</p>
                 `,
                 showCancelButton: true,
                 confirmButtonText: 'Absen Sekarang',
@@ -354,6 +355,11 @@
                         Swal.showValidationMessage('Wajah tidak terdeteksi! Hadapkan wajah ke kamera.');
                         return false;
                     }
+                    if (!capturedFaceImage) {
+                        Swal.showValidationMessage(
+                            'Foto belum ter-capture. Tunggu sebentar lalu coba lagi.');
+                        return false;
+                    }
                     return true;
                 }
             });
@@ -361,7 +367,7 @@
             if (confirmed) {
                 prosesAbsen(qrData.qr_id);
             } else {
-                html5QrcodeScanner.resume();
+                startScanner(); 
             }
         }
 
@@ -371,6 +377,7 @@
         async function startFaceDetection() {
             const video = document.getElementById('face-video');
             const overlay = document.getElementById('face-overlay');
+            const capture = document.getElementById('face-capture');
             const status = document.getElementById('face-status');
 
             try {
@@ -382,10 +389,33 @@
 
                 faceStream = await navigator.mediaDevices.getUserMedia({
                     video: {
-                        facingMode: 'user'
+                        facingMode: 'user',
+                        width: {
+                            ideal: 320
+                        },
+                        height: {
+                            ideal: 240
+                        }
                     }
                 });
                 video.srcObject = faceStream;
+
+                // Tunggu video siap dulu baru set ukuran canvas
+                video.onloadedmetadata = () => {
+                    const w = video.videoWidth;
+                    const h = video.videoHeight;
+
+                    // Samain ukuran canvas dengan video asli
+                    overlay.width = w;
+                    overlay.height = h;
+                    capture.width = w;
+                    capture.height = h;
+
+                    // Samain style display size
+                    video.style.width = '100%';
+                    overlay.style.width = '100%';
+                };
+
                 status.textContent = 'Kamera aktif. Hadapkan wajah ke kamera...';
 
                 faceInterval = setInterval(async () => {
@@ -402,11 +432,14 @@
                         faceDetected = true;
                         status.innerHTML =
                             '<span style="color:#16a34a;font-weight:bold">✅ Wajah terdeteksi! Klik Absen Sekarang.</span>';
+
+                        // Gambar kotak wajah sesuai ukuran video asli
                         const dims = faceapi.matchDimensions(overlay, video, true);
                         faceapi.draw.drawDetections(overlay, faceapi.resizeResults(detection, dims));
-                        const capCanvas = document.getElementById('face-capture');
-                        capCanvas.getContext('2d').drawImage(video, 0, 0, 280, 210);
-                        capturedFaceImage = capCanvas.toDataURL('image/jpeg', 0.7);
+
+                        // Capture foto
+                        capture.getContext('2d').drawImage(video, 0, 0, capture.width, capture.height);
+                        capturedFaceImage = capture.toDataURL('image/jpeg', 0.8);
                     } else {
                         faceDetected = false;
                         status.textContent = 'Wajah tidak terdeteksi. Pastikan pencahayaan cukup.';
@@ -454,7 +487,7 @@
                             })
                             .then(() => location.reload());
                     } else {
-                        Swal.fire('Gagal', data.message, 'error').then(() => html5QrcodeScanner.resume());
+                        Swal.fire('Gagal', data.message, 'error').then(() => startScanner());
                     }
                 });
         }
