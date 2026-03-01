@@ -117,19 +117,26 @@ class ScanQRController extends Controller
         try {
             if ($request->filled('face_image')) {
                 if (app()->environment('production')) {
-                    // Cloudinary butuh temp file, bukan base64 string langsung
                     $imageData = preg_replace('#^data:image/\w+;base64,#i', '', $request->face_image);
                     $imageDecoded = base64_decode($imageData);
                     $tempPath = tempnam(sys_get_temp_dir(), 'face_') . '.jpg';
                     file_put_contents($tempPath, $imageDecoded);
 
-                    $uploaded = cloudinary()->upload($tempPath, [
-                        'folder' => 'absensi-faces',
-                        'public_id' => 'face_' . $user->id . '_' . time(),
-                    ]);
-                    $faceImagePath = $uploaded->getSecurePath();
+                    $result = cloudinary()
+                        ->uploadApi()
+                        ->upload($tempPath, [
+                            'folder' => 'absensi-faces',
+                            'public_id' => 'face_' . $user->id . '_' . time(),
+                        ]);
 
-                    // Hapus temp file
+                    // Debug sementara - liat isi $result
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'DEBUG result: ' . json_encode($result),
+                    ]);
+
+                    $faceImagePath = $result['secure_url'];
+
                     @unlink($tempPath);
                 } else {
                     $imageData = preg_replace('#^data:image/\w+;base64,#i', '', $request->face_image);
