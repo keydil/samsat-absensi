@@ -151,7 +151,7 @@ class ScanQRController extends Controller
 
                     return response()->json(['success' => false, 'message' => 'DEBUG result: ' . json_encode($result)]);
 
-                    $faceImagePath = $result['secure_url'];
+                    $faceImagePath = null;
                     @unlink($tempPath);
                 } else {
                     $imageData = preg_replace('#^data:image/\w+;base64,#i', '', $request->face_image);
