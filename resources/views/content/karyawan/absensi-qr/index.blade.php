@@ -373,10 +373,18 @@
                         },
                         height: {
                             ideal: 240
-                        }
+                        },
+                        // Setting biar lebih terang di kondisi gelap
+                        brightness: {
+                            ideal: 100
+                        },
+                        exposureMode: 'continuous',
+                        whiteBalanceMode: 'continuous',
                     }
                 });
                 video.srcObject = faceStream;
+                // Setelah video.srcObject = faceStream;
+                video.style.filter = 'brightness(1.4) contrast(1.1)';
 
                 // Tunggu video bener-bener siap & playing
                 await new Promise((resolve) => {
@@ -398,14 +406,14 @@
 
                 // Mulai deteksi SETELAH video siap
                 faceInterval = setInterval(async () => {
-                    if (video.readyState < 2) return; // skip kalau video belum siap
+                        if (video.readyState < 2) return; // skip kalau video belum siap
 
-                    const ctx = overlay.getContext('2d');
-                    ctx.clearRect(0, 0, overlay.width, overlay.height);
+                        const ctx = overlay.getContext('2d');
+                        ctx.clearRect(0, 0, overlay.width, overlay.height);
 
-                    const detection = await faceapi.detectSingleFace(
-                        video, new faceapi.TinyFaceDetectorOptions({
-                            scoreThreshold: 0.5
+                        new faceapi.TinyFaceDetectorOptions({
+                            scoreThreshold: 0.3,
+                            inputSize: 416
                         })
                     ).withFaceLandmarks(true);
 
@@ -426,9 +434,9 @@
                     }
                 }, 500);
 
-            } catch (err) {
-                status.textContent = 'Gagal akses kamera: ' + err.message;
-            }
+        } catch (err) {
+            status.textContent = 'Gagal akses kamera: ' + err.message;
+        }
         }
 
         function stopFaceCamera() {
