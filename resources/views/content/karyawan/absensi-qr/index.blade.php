@@ -152,14 +152,10 @@
         let faceDetected = false;
         let capturedFaceImage = null;
 
-        // Koordinat & radius kantor (dari .env via blade)
         const OFFICE_LAT = {{ env('OFFICE_LAT', -6.9824624) }};
         const OFFICE_LNG = {{ env('OFFICE_LNG', 107.7540507) }};
         const MAX_RADIUS = {{ env('OFFICE_RADIUS_METER', 50) }};
 
-        // =============================================
-        // HITUNG JARAK (JS)
-        // =============================================
         function haversineJS(lat1, lng1, lat2, lng2) {
             const R = 6371000;
             const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -173,9 +169,6 @@
             return meter >= 1000 ? (meter / 1000).toFixed(1) + ' km' : meter + ' m';
         }
 
-        // =============================================
-        // UPDATE UI KARTU LOKASI
-        // =============================================
         function updateLocationUI(state, customMsg, distance) {
             const card = document.getElementById('location-status');
             const icon = document.getElementById('loc-icon');
@@ -196,7 +189,6 @@
                 badge.classList.remove('hidden');
                 distEl.textContent = formatDistance(distance);
                 distEl.className = 'text-2xl font-bold text-emerald-600';
-
             } else if (state === 'far') {
                 card.className = 'rounded-xl border border-red-200 bg-red-50 shadow-sm p-4 flex items-center gap-4';
                 icon.className = 'flex-shrink-0 h-12 w-12 rounded-full bg-red-100 flex items-center justify-center';
@@ -210,7 +202,6 @@
                 badge.classList.remove('hidden');
                 distEl.textContent = formatDistance(distance);
                 distEl.className = 'text-2xl font-bold text-red-600';
-
             } else if (state === 'denied') {
                 card.className = 'rounded-xl border border-amber-200 bg-amber-50 shadow-sm p-4 flex items-center gap-4';
                 icon.className = 'flex-shrink-0 h-12 w-12 rounded-full bg-amber-100 flex items-center justify-center';
@@ -224,9 +215,6 @@
             }
         }
 
-        // =============================================
-        // AMBIL GPS (watchPosition = update realtime)
-        // =============================================
         function getLocation() {
             if (!navigator.geolocation) {
                 updateLocationUI('denied', 'Browser tidak mendukung GPS.');
@@ -248,9 +236,6 @@
         }
         getLocation();
 
-        // =============================================
-        // TOMBOL KAMERA
-        // =============================================
         document.getElementById('start-camera').addEventListener('click', function() {
             startScanner();
             this.classList.add('hidden');
@@ -266,9 +251,6 @@
             document.getElementById('camera-placeholder').classList.remove('hidden');
         });
 
-        // =============================================
-        // SCANNER QR
-        // =============================================
         function startScanner() {
             html5QrcodeScanner = new Html5QrcodeScanner("reader", {
                 fps: 10,
@@ -281,14 +263,12 @@
         }
 
         function onScanSuccess(decodedText) {
-            // Stop scanner dulu biar kamera bebas untuk face detection
             html5QrcodeScanner.clear();
             document.getElementById('camera-placeholder').classList.remove('hidden');
 
             if (!userLatitude || !userLongitude) {
                 Swal.fire('Lokasi Belum Siap', 'Tunggu sebentar, GPS sedang diambil. Coba lagi.', 'warning')
                     .then(() => {
-                        document.getElementById('camera-placeholder').classList.add('hidden');
                         startScanner();
                     });
                 return;
@@ -324,25 +304,23 @@
                 });
         }
 
-        // =============================================
-        // FACE VERIFICATION
-        // =============================================
         async function showFaceVerification(qrData) {
+            // Reset dulu sebelum buka modal
+            faceDetected = false;
+            capturedFaceImage = null;
+
             const {
                 value: confirmed
             } = await Swal.fire({
                 title: `QR Terbaca: Absen ${qrData.present_type}`,
                 html: `
-                <p class="text-sm text-slate-500 mb-3">Verifikasi wajah diperlukan sebelum absen.</p>
-                <div style="position:relative;display:inline-block;width:100%">
-                <video id="face-video"
-                style="border-radius:12px;background:#000;display:block;width:100%" 
-                autoplay muted playsinline></video>
-                <canvas id="face-overlay"
-                style="position:absolute;top:0;left:0;border-radius:12px;width:100%"></canvas>
-                 </div>
-                <canvas id="face-capture" style="display:none"></canvas>
-                <p id="face-status" class="text-xs mt-2 text-slate-500">Memuat model deteksi wajah...</p>
+                    <p class="text-sm text-slate-500 mb-3">Verifikasi wajah diperlukan sebelum absen.</p>
+                    <div style="position:relative;display:inline-block;width:100%">
+                        <video id="face-video" style="border-radius:12px;background:#000;display:block;width:100%" autoplay muted playsinline></video>
+                        <canvas id="face-overlay" style="position:absolute;top:0;left:0;border-radius:12px;width:100%;height:100%"></canvas>
+                    </div>
+                    <canvas id="face-capture" style="display:none"></canvas>
+                    <p id="face-status" class="text-xs mt-2 text-slate-500">Memuat model deteksi wajah...</p>
                 `,
                 showCancelButton: true,
                 confirmButtonText: 'Absen Sekarang',
@@ -367,7 +345,7 @@
             if (confirmed) {
                 prosesAbsen(qrData.qr_id);
             } else {
-                startScanner(); 
+                startScanner();
             }
         }
 
@@ -400,25 +378,28 @@
                 });
                 video.srcObject = faceStream;
 
-                // Tunggu video siap dulu baru set ukuran canvas
-                video.onloadedmetadata = () => {
-                    const w = video.videoWidth;
-                    const h = video.videoHeight;
+                // Tunggu video bener-bener siap & playing
+                await new Promise((resolve) => {
+                    video.onloadedmetadata = () => {
+                        video.play();
+                        resolve();
+                    };
+                });
 
-                    // Samain ukuran canvas dengan video asli
-                    overlay.width = w;
-                    overlay.height = h;
-                    capture.width = w;
-                    capture.height = h;
-
-                    // Samain style display size
-                    video.style.width = '100%';
-                    overlay.style.width = '100%';
-                };
+                // Set ukuran canvas sesuai video asli
+                const w = video.videoWidth || 320;
+                const h = video.videoHeight || 240;
+                overlay.width = w;
+                overlay.height = h;
+                capture.width = w;
+                capture.height = h;
 
                 status.textContent = 'Kamera aktif. Hadapkan wajah ke kamera...';
 
+                // Mulai deteksi SETELAH video siap
                 faceInterval = setInterval(async () => {
+                    if (video.readyState < 2) return; // skip kalau video belum siap
+
                     const ctx = overlay.getContext('2d');
                     ctx.clearRect(0, 0, overlay.width, overlay.height);
 
@@ -433,7 +414,6 @@
                         status.innerHTML =
                             '<span style="color:#16a34a;font-weight:bold">✅ Wajah terdeteksi! Klik Absen Sekarang.</span>';
 
-                        // Gambar kotak wajah sesuai ukuran video asli
                         const dims = faceapi.matchDimensions(overlay, video, true);
                         faceapi.draw.drawDetections(overlay, faceapi.resizeResults(detection, dims));
 
@@ -455,11 +435,9 @@
             if (faceInterval) clearInterval(faceInterval);
             if (faceStream) faceStream.getTracks().forEach(t => t.stop());
             faceDetected = false;
+            capturedFaceImage = null;
         }
 
-        // =============================================
-        // PROSES ABSEN
-        // =============================================
         function prosesAbsen(qrId) {
             fetch("{{ route('user.scanStore') }}", {
                     method: "POST",
