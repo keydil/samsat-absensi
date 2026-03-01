@@ -12,36 +12,26 @@ use Illuminate\Support\Facades\Auth;
 
 class ScanQRController extends Controller
 {
-    // 🟢 Halaman utama
     public function index()
     {
         $absens = Absen::with('shift')->where('user_id', Auth::id())->latest('date')->get();
-
         return view('content.karyawan.absensi-qr.index', compact('absens'));
     }
 
-    // 🟡 Cek QR valid atau tidak
     public function check(Request $request)
     {
         $qr = QrCodeModel::with('shift')->where('code_qr', $request->code_qr)->first();
 
         if (!$qr) {
-            return response()->json([
-                'success' => false,
-                'message' => 'QR Code tidak ditemukan.',
-            ]);
+            return response()->json(['success' => false, 'message' => 'QR Code tidak ditemukan.']);
         }
 
-        // Cek status aktif & waktu aktif (pakai timezone WIB)
         $now = Carbon::now('Asia/Jakarta');
         $start = Carbon::parse($qr->start_time)->setTimezone('Asia/Jakarta');
         $end = Carbon::parse($qr->end_time)->setTimezone('Asia/Jakarta');
 
         if ($qr->status != 'active' || $now->lt($start) || $now->gt($end)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'QR Code sudah tidak aktif atau di luar waktu absensi.',
-            ]);
+            return response()->json(['success' => false, 'message' => 'QR Code sudah tidak aktif atau di luar waktu absensi.']);
         }
 
         return response()->json([
@@ -56,11 +46,10 @@ class ScanQRController extends Controller
         ]);
     }
 
-    // 🔵 Simpan absensi
     public function store(Request $request)
     {
         try {
-            $validated = $request->validate([
+            $request->validate([
                 'qr_id' => 'required|exists:qr_codes,id',
                 'status' => 'required|in:Hadir,Izin,Sakit',
                 'face_image' => 'required|string',
@@ -68,10 +57,7 @@ class ScanQRController extends Controller
                 'longitude' => 'required|numeric',
             ]);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validasi gagal: ' . $e->getMessage(),
-            ]);
+            return response()->json(['success' => false, 'message' => 'Validasi gagal: ' . $e->getMessage()]);
         }
 
         $user = Auth::user();
@@ -81,7 +67,6 @@ class ScanQRController extends Controller
             return response()->json(['success' => false, 'message' => 'QR tidak ditemukan.']);
         }
 
-        // 🔒 Cek QR masih aktif
         $now = Carbon::now('Asia/Jakarta');
         $start = Carbon::parse($qr->start_time)->setTimezone('Asia/Jakarta');
         $end = Carbon::parse($qr->end_time)->setTimezone('Asia/Jakarta');
@@ -93,53 +78,53 @@ class ScanQRController extends Controller
             ]);
         }
 
-        // ⛔ Cek sudah absen
         $already = Absen::where('user_id', $user->id)->where('qr_code_id', $qr->id)->exists();
         if ($already) {
             return response()->json(['success' => false, 'message' => 'Kamu sudah melakukan absensi ini.']);
         }
 
-        // 📍 Validasi radius
         $officeLat = (float) env('OFFICE_LAT', -6.9824624);
         $officeLng = (float) env('OFFICE_LNG', 107.7540507);
         $maxRadius = (float) env('OFFICE_RADIUS_METER', 50);
         $distance = $this->haversineDistance($request->latitude, $request->longitude, $officeLat, $officeLng);
 
         if ($distance > $maxRadius) {
-            return response()->json([
-                'success' => false,
-                'message' => "Di luar radius. Jarak: {$distance}m, Maks: {$maxRadius}m",
-            ]);
+            return response()->json(['success' => false, 'message' => "Di luar radius. Jarak: {$distance}m, Maks: {$maxRadius}m"]);
         }
 
-        // 📸 Simpan foto
         $faceImagePath = null;
-        try {
-            if ($request->filled('face_image')) {
-                if (app()->environment('production')) {
+        if ($request->filled('face_image')) {
+            if (app()->environment('production')) {
+                try {
                     $imageData = preg_replace('#^data:image/\w+;base64,#i', '', $request->face_image);
                     $imageDecoded = base64_decode($imageData);
                     $tempPath = sys_get_temp_dir() . '/face_' . $user->id . '_' . time() . '.jpg';
                     file_put_contents($tempPath, $imageDecoded);
 
-                    try {
-                        $result = cloudinary()
-                            ->uploadApi()
-                            ->upload($tempPath, [
-                                'folder' => 'absensi-faces',
-                                'public_id' => 'face_' . $user->id . '_' . time(),
-                            ]);
-                        $faceImagePath = $result['secure_url'];
-                    } catch (\Exception $cloudinaryError) {
-                        @unlink($tempPath);
-                        return response()->json([
-                            'success' => false,
-                            'message' => 'Cloudinary error: ' . $cloudinaryError->getMessage() . ' | Class: ' . get_class($cloudinaryError),
+                    $result = cloudinary()
+                        ->uploadApi()
+                        ->upload($tempPath, [
+                            'folder' => 'absensi-faces',
+                            'public_id' => 'face_' . $user->id . '_' . time(),
                         ]);
-                    }
 
                     @unlink($tempPath);
-                } else {
+
+                    // DEBUG - hapus setelah ketauan
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'DEBUG: type=' . gettype($result) . ' | keys=' . (is_array($result) ? implode(',', array_keys($result)) : 'bukan_array') . ' | raw=' . substr(json_encode($result), 0, 500),
+                    ]);
+
+                    $faceImagePath = $result['secure_url'];
+                } catch (\Exception $e) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Cloudinary error: ' . $e->getMessage() . ' | Class: ' . get_class($e),
+                    ]);
+                }
+            } else {
+                try {
                     $imageData = preg_replace('#^data:image/\w+;base64,#i', '', $request->face_image);
                     $imageDecoded = base64_decode($imageData);
                     $filename = 'face_' . $user->id . '_' . time() . '.jpg';
@@ -149,13 +134,10 @@ class ScanQRController extends Controller
                     }
                     file_put_contents($path, $imageDecoded);
                     $faceImagePath = asset('images/absensi/' . $filename);
+                } catch (\Exception $e) {
+                    return response()->json(['success' => false, 'message' => 'Gagal simpan foto lokal: ' . $e->getMessage()]);
                 }
             }
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal simpan foto: ' . $e->getMessage(),
-            ]);
         }
 
         try {
@@ -173,16 +155,12 @@ class ScanQRController extends Controller
                 'lng_location_present' => $request->longitude,
             ]);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal simpan absensi: ' . $e->getMessage(),
-            ]);
+            return response()->json(['success' => false, 'message' => 'Gagal simpan absensi: ' . $e->getMessage()]);
         }
 
         return response()->json(['success' => true, 'message' => 'Absensi berhasil disimpan.']);
     }
 
-    // Helper hitung jarak GPS (meter)
     private function haversineDistance($lat1, $lng1, $lat2, $lng2): float
     {
         $earthRadius = 6371000;

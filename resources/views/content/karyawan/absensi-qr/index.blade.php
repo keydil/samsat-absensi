@@ -439,7 +439,14 @@
         }
 
         function prosesAbsen(qrId) {
-            const fotoYangDikirim = capturedFaceImage; // simpan dulu sebelum direset
+            const fotoYangDikirim = capturedFaceImage;
+
+            console.log('=== DEBUG PROSES ABSEN ===');
+            console.log('qrId:', qrId);
+            console.log('face_image length:', fotoYangDikirim ? fotoYangDikirim.length : 'NULL');
+            console.log('face_image prefix:', fotoYangDikirim ? fotoYangDikirim.substring(0, 50) : 'NULL');
+            console.log('latitude:', userLatitude);
+            console.log('longitude:', userLongitude);
 
             fetch("{{ route('user.scanStore') }}", {
                     method: "POST",
@@ -457,6 +464,7 @@
                 })
                 .then(r => r.json())
                 .then(data => {
+                    console.log('=== SERVER RESPONSE ===', data);
                     if (data.success) {
                         Swal.fire({
                                 icon: 'success',
@@ -469,7 +477,8 @@
                     } else {
                         Swal.fire('Gagal', data.message, 'error').then(() => startScanner());
                     }
-                });
+                })
+                .catch(err => console.log('FETCH ERROR:', err));
         }
     </script>
 @endsection
