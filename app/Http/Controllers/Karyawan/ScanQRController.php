@@ -101,21 +101,20 @@ class ScanQRController extends Controller
                     $tempPath = sys_get_temp_dir() . '/face_' . $user->id . '_' . time() . '.jpg';
                     file_put_contents($tempPath, $imageDecoded);
 
-                    $result = cloudinary()
-                        ->uploadApi()
-                        ->upload($tempPath, [
-                            'folder' => 'absensi-faces',
-                            'public_id' => 'face_' . $user->id . '_' . time(),
-                        ]);
-
-                    @unlink($tempPath);
-
-                    // DEBUG - hapus setelah ketauan
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'DEBUG: type=' . gettype($result) . ' | keys=' . (is_array($result) ? implode(',', array_keys($result)) : 'bukan_array') . ' | raw=' . substr(json_encode($result), 0, 500),
+                    $cloudinary = new \Cloudinary\Cloudinary([
+                        'cloud' => [
+                            'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
+                            'api_key' => env('CLOUDINARY_API_KEY'),
+                            'api_secret' => env('CLOUDINARY_API_SECRET'),
+                        ],
                     ]);
 
+                    $result = $cloudinary->uploadApi()->upload($tempPath, [
+                        'folder' => 'absensi-faces',
+                        'public_id' => 'face_' . $user->id . '_' . time(),
+                    ]);
+
+                    @unlink($tempPath);
                     $faceImagePath = $result['secure_url'];
                 } catch (\Exception $e) {
                     return response()->json([
