@@ -45,7 +45,6 @@
                     <thead class="bg-slate-50 text-xs uppercase font-bold text-slate-500">
                         <tr>
                             <th class="px-6 py-4">Pegawai</th>
-                            <th class="px-6 py-4">Shift</th>
                             <th class="px-6 py-4">Tanggal</th>
                             <th class="px-6 py-4">Jam Masuk</th>
                             <th class="px-6 py-4">Jam Pulang</th>
@@ -57,10 +56,18 @@
                             <tr class="hover:bg-slate-50 transition-colors">
                                 <td class="px-6 py-4">
                                     <div class="flex items-center gap-3">
-                                        <div
-                                            class="h-8 w-8 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold text-slate-600">
-                                            {{ substr($item->user->name ?? 'U', 0, 1) }}
-                                        </div>
+                                        @if ($item->present_user_image)
+                                            <img src="{{ $item->present_user_image }}"
+                                                alt="Foto {{ $item->user->name }}"
+                                                class="h-10 w-10 rounded-full object-cover ring-2 ring-slate-200 cursor-pointer hover:ring-blue-400 transition"
+                                                onclick="window.open('{{ $item->present_user_image }}', '_blank')"
+                                                title="Klik untuk perbesar">
+                                        @else
+                                            <div
+                                                class="h-10 w-10 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold text-slate-600">
+                                                {{ substr($item->user->name ?? 'U', 0, 1) }}
+                                            </div>
+                                        @endif
                                         <div>
                                             <p class="font-semibold text-slate-900">
                                                 {{ $item->user->name ?? 'User Terhapus' }}</p>
@@ -69,19 +76,11 @@
                                     </div>
                                 </td>
 
-                                <td class="px-6 py-4">
-                                    <span
-                                        class="inline-flex items-center rounded-md bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600 ring-1 ring-inset ring-slate-500/10">
-                                        {{ $item->shift->shift_name ?? '-' }}
-                                    </span>
-                                </td>
-
                                 <td class="px-6 py-4 font-medium text-slate-700">
                                     {{ \Carbon\Carbon::parse($item->created_at)->translatedFormat('d F Y') }}
                                 </td>
 
                                 <td class="px-6 py-4 font-mono text-xs">
-                                    {{-- Cek apakah sistem mencatat ini sebagai 'Masuk' --}}
                                     @if (str_contains($item->present_desc_system, 'Masuk'))
                                         <span class="text-emerald-600 font-bold">
                                             {{ \Carbon\Carbon::parse($item->created_at)->format('H:i') }}
@@ -92,7 +91,6 @@
                                 </td>
 
                                 <td class="px-6 py-4 font-mono text-xs">
-                                    {{-- Cek apakah sistem mencatat ini sebagai 'Keluar' --}}
                                     @if (str_contains($item->present_desc_system, 'Keluar'))
                                         <span class="text-blue-600 font-bold">
                                             {{ \Carbon\Carbon::parse($item->created_at)->format('H:i') }}
@@ -111,7 +109,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="px-6 py-10 text-center text-slate-500">
+                                <td colspan="5" class="px-6 py-10 text-center text-slate-500">
                                     <div class="flex flex-col items-center justify-center">
                                         <svg class="h-10 w-10 text-slate-300 mb-2" fill="none" viewBox="0 0 24 24"
                                             stroke="currentColor">

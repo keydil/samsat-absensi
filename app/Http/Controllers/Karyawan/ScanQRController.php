@@ -35,7 +35,7 @@ class ScanQRController extends Controller
         // Cek status aktif & waktu aktif (pakai timezone WIB)
         $now = Carbon::now('Asia/Jakarta');
         $start = Carbon::parse($qr->start_time)->setTimezone('Asia/Jakarta');
-        $end   = Carbon::parse($qr->end_time)->setTimezone('Asia/Jakarta');
+        $end = Carbon::parse($qr->end_time)->setTimezone('Asia/Jakarta');
 
         if ($qr->status != 'active' || $now->lt($start) || $now->gt($end)) {
             return response()->json([
@@ -47,11 +47,11 @@ class ScanQRController extends Controller
         return response()->json([
             'success' => true,
             'data' => [
-                'qr_id'        => $qr->id,
-                'shift_id'     => $qr->shift_id,
-                'shift'        => $qr->shift->shift_name ?? 'Harian',
+                'qr_id' => $qr->id,
+                'shift_id' => $qr->shift_id,
+                'shift' => $qr->shift->shift_name ?? 'Harian',
                 'present_type' => $qr->present == 'in_present' ? 'Masuk' : 'Keluar',
-                'date'         => Carbon::parse($qr->date)->format('d-m-Y'),
+                'date' => Carbon::parse($qr->date)->format('d-m-Y'),
             ],
         ]);
     }
@@ -60,20 +60,20 @@ class ScanQRController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'qr_id'      => 'required|exists:qr_codes,id',
-            'status'     => 'required|in:Hadir,Izin,Sakit',
+            'qr_id' => 'required|exists:qr_codes,id',
+            'status' => 'required|in:Hadir,Izin,Sakit',
             'face_image' => 'required|string',
-            'latitude'   => 'required|numeric',
-            'longitude'  => 'required|numeric',
+            'latitude' => 'required|numeric',
+            'longitude' => 'required|numeric',
         ]);
 
         $user = Auth::user();
-        $qr   = QrCodeModel::find($request->qr_id);
+        $qr = QrCodeModel::find($request->qr_id);
 
         // 🔒 Cek QR masih aktif (pakai timezone WIB)
-        $now   = Carbon::now('Asia/Jakarta');
+        $now = Carbon::now('Asia/Jakarta');
         $start = Carbon::parse($qr->start_time)->setTimezone('Asia/Jakarta');
-        $end   = Carbon::parse($qr->end_time)->setTimezone('Asia/Jakarta');
+        $end = Carbon::parse($qr->end_time)->setTimezone('Asia/Jakarta');
 
         if ($qr->status != 'active' || $now->lt($start) || $now->gt($end)) {
             return response()->json(['success' => false, 'message' => 'QR Code sudah tidak aktif.']);
@@ -101,28 +101,38 @@ class ScanQRController extends Controller
         // 📸 Simpan foto wajah (base64 → file)
         $faceImagePath = null;
         if ($request->face_image) {
-            $imageData    = preg_replace('#^data:image/\w+;base64,#i', '', $request->face_image);
-            $imageDecoded = base64_decode($imageData);
-            $filename     = 'face_' . $user->id . '_' . time() . '.jpg';
-            $path         = public_path('images/absensi/' . $filename);
+            if (app()->environment('production')) {
+                // Production (Railway) → upload ke Cloudinary
+                $uploaded = cloudinary()->upload($request->face_image, [
+                    'folder' => 'absensi-faces',
+                    'public_id' => 'face_' . $user->id . '_' . time(),
+                ]);
+                $faceImagePath = $uploaded->getSecurePath();
+            } else {
+                // Lokal → simpan ke public/images/absensi
+                $imageData = preg_replace('#^data:image/\w+;base64,#i', '', $request->face_image);
+                $imageDecoded = base64_decode($imageData);
+                $filename = 'face_' . $user->id . '_' . time() . '.jpg';
+                $path = public_path('images/absensi/' . $filename);
 
-            if (!file_exists(public_path('images/absensi'))) {
-                mkdir(public_path('images/absensi'), 0755, true);
+                if (!file_exists(public_path('images/absensi'))) {
+                    mkdir(public_path('images/absensi'), 0755, true);
+                }
+                file_put_contents($path, $imageDecoded);
+                $faceImagePath = asset('images/absensi/' . $filename);
             }
-            file_put_contents($path, $imageDecoded);
-            $faceImagePath = 'images/absensi/' . $filename;
         }
 
         Absen::create([
-            'user_id'             => $user->id,
-            'shift_id'            => null,
-            'qr_code_id'          => $qr->id,
-            'date'                => $qr->date,
-            'time'                => Carbon::now('Asia/Jakarta')->format('H:i'),
-            'status'              => $request->status,
-            'status_desc'         => 'Absensi via QR Code',
+            'user_id' => $user->id,
+            'shift_id' => null,
+            'qr_code_id' => $qr->id,
+            'date' => $qr->date,
+            'time' => Carbon::now('Asia/Jakarta')->format('H:i'),
+            'status' => $request->status,
+            'status_desc' => 'Absensi via QR Code',
             'present_desc_system' => 'Absen ' . ($qr->present == 'in_present' ? 'Masuk' : 'Keluar'),
-            'present_user_image'  => $faceImagePath,
+            'present_user_image' => $faceImagePath,
             'lat_location_present' => $request->latitude,
             'lng_location_present' => $request->longitude,
         ]);
@@ -136,7 +146,7 @@ class ScanQRController extends Controller
         $earthRadius = 6371000;
         $dLat = deg2rad($lat2 - $lat1);
         $dLng = deg2rad($lng2 - $lng1);
-        $a    = sin($dLat / 2) ** 2 + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * sin($dLng / 2) ** 2;
+        $a = sin($dLat / 2) ** 2 + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * sin($dLng / 2) ** 2;
         return round($earthRadius * 2 * atan2(sqrt($a), sqrt(1 - $a)));
     }
 }
