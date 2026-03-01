@@ -62,7 +62,7 @@ class ScanQRController extends Controller
         $request->validate([
             'qr_id' => 'required|exists:qr_codes,id',
             'status' => 'required|in:Hadir,Izin,Sakit',
-            'face_image' => 'required|string',
+            'face_image' => 'nullable|string', // ← ganti required jadi nullable dulu
             'latitude' => 'required|numeric',
             'longitude' => 'required|numeric',
         ]);
