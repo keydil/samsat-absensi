@@ -49,7 +49,7 @@
                             </svg>
                             Kamera Scanner
                         </h3>
-                        <div class="flex gap-2">
+                        <div class="flex gap-2 flex-wrap">
                             <button id="start-camera"
                                 class="px-3 py-1 text-xs font-bold bg-blue-600 text-white rounded hover:bg-blue-700 transition">
                                 Start Kamera
@@ -57,6 +57,14 @@
                             <button id="stop-camera"
                                 class="px-3 py-1 text-xs font-bold bg-red-600 text-white rounded hover:bg-red-700 transition hidden">
                                 Stop
+                            </button>
+                            <button onclick="openNonPresenceModal('Izin')"
+                                class="px-3 py-1 text-xs font-bold bg-amber-500 text-white rounded hover:bg-amber-600 transition">
+                                📋 Ajukan Izin
+                            </button>
+                            <button onclick="openNonPresenceModal('Sakit')"
+                                class="px-3 py-1 text-xs font-bold bg-rose-500 text-white rounded hover:bg-rose-600 transition">
+                                🏥 Lapor Sakit
                             </button>
                         </div>
                     </div>
@@ -480,5 +488,122 @@
                 })
                 .catch(err => console.log('FETCH ERROR:', err));
         }
+
+        // ===== NON-PRESENCE (IZIN / SAKIT) =====
+        function openNonPresenceModal(type) {
+            document.getElementById('np-modal').classList.remove('hidden');
+            document.getElementById('np-status').value = type;
+            document.getElementById('np-title').textContent = type === 'Izin' ? '📋 Ajukan Izin' : '🏥 Lapor Sakit';
+            document.getElementById('np-subtitle').textContent = type === 'Izin'
+                ? 'Isi form di bawah untuk mengajukan izin hari ini.'
+                : 'Isi form di bawah untuk melaporkan sakit hari ini.';
+            // Reset form
+            document.getElementById('np-keterangan').value = '';
+            document.getElementById('np-bukti').value = '';
+            document.getElementById('np-preview').classList.add('hidden');
+        }
+
+        function closeNonPresenceModal() {
+            document.getElementById('np-modal').classList.add('hidden');
+        }
+
+        function previewFile(input) {
+            const preview = document.getElementById('np-preview');
+            const previewImg = document.getElementById('np-preview-img');
+            const previewName = document.getElementById('np-preview-name');
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                previewName.textContent = file.name;
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => { previewImg.src = e.target.result; previewImg.classList.remove('hidden'); };
+                    reader.readAsDataURL(file);
+                } else {
+                    previewImg.classList.add('hidden');
+                }
+                preview.classList.remove('hidden');
+            }
+        }
+
+        function submitNonPresence() {
+            const status = document.getElementById('np-status').value;
+            const keterangan = document.getElementById('np-keterangan').value;
+            const buktiInput = document.getElementById('np-bukti');
+
+            if (!keterangan.trim()) {
+                Swal.fire('Perhatian', 'Alasan/keterangan wajib diisi.', 'warning');
+                return;
+            }
+            if (!buktiInput.files || !buktiInput.files[0]) {
+                Swal.fire('Perhatian', 'Upload bukti surat wajib diisi.', 'warning');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('status', status);
+            formData.append('keterangan', keterangan);
+            formData.append('bukti_surat', buktiInput.files[0]);
+
+            const submitBtn = document.getElementById('np-submit-btn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Mengirim...';
+
+            fetch("{{ route('user.storeNonPresence') }}", {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': csrfToken },
+                body: formData
+            })
+            .then(r => r.json())
+            .then(data => {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Kirim Pengajuan';
+                if (data.success) {
+                    closeNonPresenceModal();
+                    Swal.fire({ icon: 'success', title: 'Berhasil!', text: data.message, timer: 2000, showConfirmButton: false })
+                        .then(() => location.reload());
+                } else {
+                    const errMsg = data.errors ? Object.values(data.errors).flat().join('\n') : data.message;
+                    Swal.fire('Gagal', errMsg, 'error');
+                }
+            })
+            .catch(err => {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Kirim Pengajuan';
+                Swal.fire('Error', 'Terjadi kesalahan jaringan.', 'error');
+            });
+        }
     </script>
+
+    {{-- MODAL IZIN / SAKIT --}}
+    <div id="np-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closeNonPresenceModal()"></div>
+        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden z-10 animate-in">
+            <div class="p-6 border-b border-slate-100 bg-slate-50">
+                <h3 id="np-title" class="text-lg font-bold text-slate-800"></h3>
+                <p id="np-subtitle" class="text-sm text-slate-500 mt-1"></p>
+            </div>
+            <div class="p-6 space-y-4">
+                <input type="hidden" id="np-status" value="">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Alasan / Keterangan <span class="text-red-500">*</span></label>
+                    <textarea id="np-keterangan" rows="3" placeholder="Contoh: Demam tinggi, perlu istirahat..."
+                        class="w-full rounded-lg border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700 focus:border-blue-500 focus:ring-blue-500"></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Bukti Surat <span class="text-red-500">*</span></label>
+                    <input type="file" id="np-bukti" accept="image/*,.pdf" onchange="previewFile(this)"
+                        class="w-full text-sm text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
+                    <p class="text-xs text-slate-400 mt-1">Format: JPG, PNG, atau PDF. Maks 2MB.</p>
+                    <div id="np-preview" class="hidden mt-3 p-3 bg-slate-50 rounded-lg border border-slate-200">
+                        <img id="np-preview-img" class="hidden w-full max-h-40 object-contain rounded mb-2" />
+                        <p id="np-preview-name" class="text-xs font-medium text-slate-600"></p>
+                    </div>
+                </div>
+            </div>
+            <div class="p-6 border-t border-slate-100 bg-slate-50 flex gap-3 justify-end">
+                <button onclick="closeNonPresenceModal()" class="px-5 py-2.5 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition">Batal</button>
+                <button id="np-submit-btn" onclick="submitNonPresence()" class="px-5 py-2.5 text-sm font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition shadow-lg shadow-blue-500/30">Kirim Pengajuan</button>
+            </div>
+        </div>
+    </div>
 @endsection

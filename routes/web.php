@@ -6,7 +6,6 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Dashboard\AdminController;
 use App\Http\Controllers\Dashboard\UserController;
 use App\Http\Controllers\Karyawan\ScanQRController;
-use Illuminate\Routing\RouteRegistrar;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\RekapAbsensiController;
@@ -55,16 +54,21 @@ Route::get('dashboard/karyawan', [UserController::class, 'index'])
 Route::middleware(['RoleUser:Admin'])->group(function () {
     // Admin Data User
     Route::get('/dashboard/admin/data/user', [DataUserController::class, 'index'])->name('admin.dataUser');
-    // Generate QR-Code Admin
     Route::get('/dashboard/admin/data/user/create', [DataUserController::class, 'create'])->name('admin.dataUser.create');
     Route::post('/dashboard/admin/data/user', [DataUserController::class, 'store'])->name('admin.dataUser.store');
     Route::get('/dashboard/admin/data/user/{user}/edit', [DataUserController::class, 'edit'])->name('admin.dataUser.edit');
     Route::put('/dashboard/admin/data/user/{user}', [DataUserController::class, 'update'])->name('admin.dataUser.update');
     Route::delete('/dashboard/admin/data/user/{user}', [DataUserController::class, 'destroy'])->name('admin.dataUser.destroy');
+
+    // QR Code — Auto Generate (form manual dihapus)
     Route::get('/dashboard/admin/generate-qr', [GenerateQRController::class, 'index'])->name('admin.generate-qr');
-    Route::delete('/dashboard/admin/generate-qr/{id}', [GenerateQRController::class, 'destroy'])->name('admin.generate-qr.destroy');
-    Route::post('/dashboard/admin/generate-qr/store', [GenerateQRController::class, 'store'])->name('admin.generate-qr.store');
+    Route::get('/dashboard/admin/generate-qr/display', [GenerateQRController::class, 'display'])->name('admin.generate-qr.display');
     Route::get('/dashboard/admin/generate-qr/show/{code}', [GenerateQRController::class, 'show'])->name('admin.generate-qr.show');
+    Route::delete('/dashboard/admin/generate-qr/{id}', [GenerateQRController::class, 'destroy'])->name('admin.generate-qr.destroy');
+
+    // API: Auto-generate & fetch QR aktif
+    Route::get('/api/qr/current-active', [GenerateQRController::class, 'currentActive'])->name('api.qr.current-active');
+
     // Route Rekap Absensi
     Route::get('/dashboard/admin/rekap-absensi', [RekapAbsensiController::class, 'index'])->name('admin.rekap-absensi');
     Route::get('/dashboard/admin/rekap-absensi/export', [RekapAbsensiController::class, 'export'])->name('admin.rekap-absensi.export');
@@ -74,5 +78,6 @@ Route::middleware(['RoleUser:Karyawan'])->group(function () {
     Route::get('/dashboard/karyawan/absensi', [ScanQRController::class, 'index'])->name('user.scanQR');
     Route::post('/dashboard/karyawan/absensi/scan-qr/check', [ScanQRController::class, 'check'])->name('user.scanCheck');
     Route::post('/dashboard/karyawan/absensi/scan-qr/store', [ScanQRController::class, 'store'])->name('user.scanStore');
+    Route::post('/dashboard/karyawan/absensi/non-presence', [ScanQRController::class, 'storeNonPresence'])->name('user.storeNonPresence');
     Route::get('/dashboard/user/riwayat', [UserController::class, 'history'])->name('user.history');
 });

@@ -160,6 +160,118 @@ class ScanQRController extends Controller
         return response()->json(['success' => true, 'message' => 'Absensi berhasil disimpan.']);
     }
 
+    /**
+     * Simpan pengajuan Izin / Sakit (Non-Presence).
+     * Bypass: GPS geofencing & face biometric TIDAK dijalankan.
+     */
+    public function storeNonPresence(Request $request)
+    {
+        try {
+            $request->validate([
+                'status' => 'required|in:Izin,Sakit',
+                'keterangan' => 'required|string|max:500',
+                'bukti_surat' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            ], [
+                'status.required' => 'Pilih status pengajuan.',
+                'keterangan.required' => 'Masukkan alasan/keterangan.',
+                'bukti_surat.required' => 'Upload bukti surat wajib diisi.',
+                'bukti_surat.mimes' => 'File harus berupa gambar (JPG/PNG) atau PDF.',
+                'bukti_surat.max' => 'Ukuran file maksimal 2MB.',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validasi gagal.',
+                'errors' => $e->errors(),
+            ], 422);
+        }
+
+        $user = Auth::user();
+        $today = Carbon::now('Asia/Jakarta')->toDateString();
+
+        // Cek duplikasi: maksimal 1 pengajuan Izin/Sakit per hari
+        $alreadySubmitted = Absen::where('user_id', $user->id)
+            ->where('date', $today)
+            ->whereIn('status', ['Izin', 'Sakit'])
+            ->whereNull('qr_code_id')
+            ->exists();
+
+        if ($alreadySubmitted) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Kamu sudah mengajukan Izin/Sakit hari ini.',
+            ]);
+        }
+
+        // Upload bukti surat
+        $buktiSuratPath = null;
+        if ($request->hasFile('bukti_surat')) {
+            $file = $request->file('bukti_surat');
+
+            if (app()->environment('production')) {
+                // Upload ke Cloudinary
+                try {
+                    $cloudinary = new \Cloudinary\Cloudinary([
+                        'cloud' => [
+                            'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
+                            'api_key' => env('CLOUDINARY_API_KEY'),
+                            'api_secret' => env('CLOUDINARY_API_SECRET'),
+                        ],
+                    ]);
+
+                    $result = $cloudinary->uploadApi()->upload($file->getRealPath(), [
+                        'folder' => 'absensi-surat',
+                        'public_id' => 'surat_' . $user->id . '_' . time(),
+                    ]);
+
+                    $buktiSuratPath = $result['secure_url'];
+                } catch (\Exception $e) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Gagal upload ke Cloudinary: ' . $e->getMessage(),
+                    ]);
+                }
+            } else {
+                // Simpan ke local storage
+                $filename = 'surat_' . $user->id . '_' . time() . '.' . $file->getClientOriginalExtension();
+                $destinationPath = public_path('images/surat');
+                if (!file_exists($destinationPath)) {
+                    mkdir($destinationPath, 0755, true);
+                }
+                $file->move($destinationPath, $filename);
+                $buktiSuratPath = asset('images/surat/' . $filename);
+            }
+        }
+
+        // Simpan ke tabel absens — tanpa QR, tanpa GPS, tanpa foto wajah
+        try {
+            Absen::create([
+                'user_id' => $user->id,
+                'shift_id' => null,
+                'qr_code_id' => null,
+                'date' => $today,
+                'time' => Carbon::now('Asia/Jakarta')->format('H:i'),
+                'status' => $request->status,
+                'status_desc' => $request->keterangan,
+                'present_desc_system' => 'Pengajuan ' . $request->status,
+                'present_user_image' => null,
+                'lat_location_present' => null,
+                'lng_location_present' => null,
+                'bukti_surat' => $buktiSuratPath,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menyimpan pengajuan: ' . $e->getMessage(),
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Pengajuan ' . $request->status . ' berhasil dikirim.',
+        ]);
+    }
+
     private function haversineDistance($lat1, $lng1, $lat2, $lng2): float
     {
         $earthRadius = 6371000;

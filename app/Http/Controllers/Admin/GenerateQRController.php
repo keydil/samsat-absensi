@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Shift;
 use App\Models\QrCode as QrCodeModel;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
@@ -12,73 +11,147 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class GenerateQRController extends Controller
 {
+    /**
+     * Halaman utama QR Code — Auto-Display + Riwayat (read-only).
+     * Form manual dihapus, QR di-generate otomatis oleh sistem.
+     */
     public function index()
     {
-        $now = Carbon::now();
+        // Auto-expire QR yang sudah lewat waktunya
+        $now = Carbon::now('Asia/Jakarta');
         QrCodeModel::where('status', 'active')
             ->where('end_time', '<', $now)
             ->update(['status' => 'expired']);
 
-        $shifts = Shift::all();
+        // Ambil semua riwayat QR (read-only)
         $activeQr = QrCodeModel::with('shift')
-            // ->where('status', 'active')
             ->orderByDesc('created_at')
             ->get();
 
-        return view('content.admin.generate-qr.index', compact('shifts', 'activeQr'));
+        return view('content.admin.generate-qr.index', compact('activeQr'));
     }
 
-    public function store(Request $request)
+    /**
+     * API Endpoint: Cek & auto-generate QR Code aktif berdasarkan jadwal sesi.
+     * GET /api/qr/current-active
+     *
+     * Flow:
+     * 1. Cek waktu sekarang terhadap jadwal sesi dari .env
+     * 2. Jika dalam sesi → cek DB, ada QR aktif? Return. Belum? Auto-generate.
+     * 3. Jika di luar sesi → return { active: false }
+     */
+    public function currentActive()
     {
-        $request->validate(
+        $now = Carbon::now('Asia/Jakarta');
+        $today = $now->toDateString();
+        $currentTime = $now->format('H:i');
+
+        // Auto-expire QR yang sudah lewat waktunya
+        QrCodeModel::where('status', 'active')
+            ->where('end_time', '<', $now)
+            ->update(['status' => 'expired']);
+
+        // Konfigurasi jadwal sesi dari .env
+        $sessions = [
             [
-                'present_type' => 'required|in:in_present,out_present',
-                'date' => 'required|date_format:Y-m-d',
-                'start_time' => 'required|date_format:H:i',
-                'end_time' => 'required|date_format:H:i|after:start_time',
+                'type' => 'in_present',
+                'label' => 'Absen Masuk',
+                'start' => env('QR_SESSION_IN_START', '07:00'),
+                'end' => env('QR_SESSION_IN_END', '09:00'),
             ],
             [
-                'present_type.required' => 'Silahkan pilih jenis absen',
-                'date.required' => 'Masukkan tanggal absen',
-                'start_time.required' => 'Masukkan waktu mulai aktif QR',
-                'end_time.required' => 'Masukkan waktu berakhir QR',
+                'type' => 'out_present',
+                'label' => 'Absen Pulang',
+                'start' => env('QR_SESSION_OUT_START', '16:00'),
+                'end' => env('QR_SESSION_OUT_END', '17:00'),
             ],
-        );
+        ];
 
-        // ✅ CEK DOBEL: tanggal + tipe yang sama ga boleh ada QR aktif lagi
-        $exists = QrCodeModel::where('date', $request->date)->where('present', $request->present_type)->where('status', 'active')->exists();
-
-        if ($exists) {
-            $label = $request->present_type == 'in_present' ? 'Absen Masuk' : 'Absen Pulang';
-            return redirect()
-                ->back()
-                ->withErrors(['duplicate' => "QR {$label} untuk tanggal {$request->date} sudah ada dan masih aktif!"])
-                ->withInput();
+        // Cek apakah sekarang masuk salah satu sesi
+        $activeSession = null;
+        foreach ($sessions as $session) {
+            if ($currentTime >= $session['start'] && $currentTime < $session['end']) {
+                $activeSession = $session;
+                break;
+            }
         }
 
-        $start_time = Carbon::parse($request->date . ' ' . $request->start_time);
-        $end_time = Carbon::parse($request->date . ' ' . $request->end_time);
-        $qr_code_value = Str::uuid()->toString();
+        if (!$activeSession) {
+            // Hitung sesi berikutnya
+            $nextSession = null;
+            foreach ($sessions as $session) {
+                if ($currentTime < $session['start']) {
+                    $nextSession = $session;
+                    break;
+                }
+            }
 
-        QrCodeModel::create([
-            'shift_id' => null, // shift dihapus dari flow
-            'code_qr' => $qr_code_value,
-            'present' => $request->present_type,
-            'date' => $request->date,
-            'start_time' => $start_time,
-            'end_time' => $end_time,
-            'status' => 'active',
-        ]);
-
-        return redirect()
-            ->back()
-            ->with([
-                'message' => 'QR Code berhasil dibuat!',
-                'qr_code_value' => $qr_code_value,
-                'qr_present_type' => $request->present_type,
+            return response()->json([
+                'active' => false,
+                'message' => 'Di luar jam absensi.',
+                'current_time' => $now->format('H:i:s'),
+                'next_session' => $nextSession ? [
+                    'label' => $nextSession['label'],
+                    'start' => $nextSession['start'],
+                ] : null,
             ]);
+        }
+
+        // Cek apakah sudah ada QR aktif untuk sesi ini hari ini
+        $startTime = Carbon::parse($today . ' ' . $activeSession['start'], 'Asia/Jakarta');
+        $endTime = Carbon::parse($today . ' ' . $activeSession['end'], 'Asia/Jakarta');
+
+        $qr = QrCodeModel::where('date', $today)
+            ->where('present', $activeSession['type'])
+            ->where('status', 'active')
+            ->first();
+
+        // Jika belum ada → auto-generate
+        if (!$qr) {
+            $qr_code_value = Str::uuid()->toString();
+
+            $qr = QrCodeModel::create([
+                'shift_id' => null,
+                'code_qr' => $qr_code_value,
+                'present' => $activeSession['type'],
+                'date' => $today,
+                'start_time' => $startTime,
+                'end_time' => $endTime,
+                'status' => 'active',
+            ]);
+        }
+
+        // Generate SVG QR Code
+        $qrSvg = QrCode::format('svg')->size(300)->generate($qr->code_qr);
+
+        return response()->json([
+            'active' => true,
+            'data' => [
+                'qr_id' => $qr->id,
+                'code_qr' => $qr->code_qr,
+                'present_type' => $activeSession['type'],
+                'session_label' => $activeSession['label'],
+                'start_time' => Carbon::parse($qr->start_time)->format('H:i'),
+                'end_time' => Carbon::parse($qr->end_time)->format('H:i'),
+                'date' => $qr->date,
+                'svg' => base64_encode($qrSvg),
+            ],
+            'current_time' => $now->format('H:i:s'),
+        ]);
     }
 
+    /**
+     * Halaman Kiosk / Display mode untuk TV kantor.
+     * Full-screen, auto-polling, tanpa sidebar.
+     */
+    public function display()
+    {
+        return view('content.admin.generate-qr.display');
+    }
+
+    /**
+     * Menampilkan detail QR Code tertentu.
+     */
     public function show($code)
     {
         $qr = QrCodeModel::with('shift')->where('code_qr', $code)->firstOrFail();
@@ -86,10 +159,13 @@ class GenerateQRController extends Controller
         return view('content.admin.generate-qr.show', compact('qr', 'showQR'));
     }
 
+    /**
+     * Hapus QR Code.
+     */
     public function destroy($id)
-{
-    $qr = QrCodeModel::findOrFail($id);
-    $qr->delete();
-    return redirect()->back()->with('message', 'QR Code berhasil dihapus!');
-}
+    {
+        $qr = QrCodeModel::findOrFail($id);
+        $qr->delete();
+        return redirect()->back()->with('message', 'QR Code berhasil dihapus!');
+    }
 }

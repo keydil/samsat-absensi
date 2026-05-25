@@ -11,6 +11,7 @@ class Absen extends Model
         'present_desc_system', 'present_user_desc', 'present_user_image',
         'status', 'status_desc', 'status_image',
         'lat_location_present', 'lng_location_present',
+        'bukti_surat',
     ];
 
     // Relasi ke user
