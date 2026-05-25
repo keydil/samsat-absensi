@@ -61,9 +61,9 @@
                         </svg>
                     </div>
                     <div>
-                        <p class="text-sm font-medium text-slate-500">Shift Hari Ini</p>
+                        <p class="text-sm font-medium text-slate-500">Status Hari Ini</p>
                         <p class="text-lg font-bold text-slate-900">
-                            {{ $riwayat->first() && \Carbon\Carbon::parse($riwayat->first()->created_at)->isToday() ? $riwayat->first()->shift->shift_name ?? 'Harian' : 'Belum Absen' }}
+                            {{ $riwayat->first() && \Carbon\Carbon::parse($riwayat->first()->created_at)->isToday() ? 'Sudah Absen' : 'Belum Absen' }}
                         </p>
                     </div>
                 </div>
@@ -100,14 +100,11 @@
                             <li class="flex items-center justify-between gap-x-6 px-6 py-4 hover:bg-slate-50">
                                 <div class="flex min-w-0 gap-x-4">
                                     <div class="flex-shrink-0 h-10 w-10 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-600">
-                                        {{ substr($log->shift->shift_name ?? 'S', 0, 1) }}
+                                        {{ substr($log->present_desc_system ?? 'A', 0, 1) }}
                                     </div>
                                     <div class="min-w-0 flex-auto">
                                         <p class="text-sm font-semibold leading-6 text-slate-900">
                                             {{ $log->present_desc_system ?? 'Absen' }}
-                                        </p>
-                                        <p class="mt-1 truncate text-xs leading-5 text-slate-500">
-                                            {{ $log->shift->shift_name ?? '-' }}
                                         </p>
                                     </div>
                                 </div>

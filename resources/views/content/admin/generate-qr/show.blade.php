@@ -45,28 +45,6 @@
                                     </tr>
 
                                     <tr>
-                                        <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-slate-500">Shift
-                                            Kerja</td>
-                                        <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-900 font-semibold">
-                                            {{ $qr->shift->shift_name ?? 'Shift Harian' }}
-                                        </td>
-                                    </tr>
-
-                                    <tr>
-                                        <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-slate-500">Jam
-                                            Operasional Shift</td>
-                                        <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-700">
-                                            @if ($qr->shift)
-                                                {{ \Carbon\Carbon::parse($qr->shift->in_time)->format('H:i') }}
-                                                <span class="text-slate-400 mx-1">&mdash;</span>
-                                                {{ \Carbon\Carbon::parse($qr->shift->out_time)->format('H:i') }} WIB
-                                            @else
-                                                <span class="text-slate-400">-</span>
-                                            @endif
-                                        </td>
-                                    </tr>
-
-                                    <tr>
                                         <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-slate-500">Tanggal
                                             Absen</td>
                                         <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-700">

@@ -132,9 +132,9 @@
                                             </div>
                                             <div>
                                                 <p class="text-sm font-bold text-slate-800">
-                                                    {{ $absen->present_desc_system }}</p>
-                                                <p class="text-xs text-slate-500">{{ $absen->time }} WIB &bull;
-                                                    {{ $absen->shift->shift_name ?? 'Harian' }}</p>
+                                                    {{ $absen->present_desc_system ?? 'Absen' }}
+                                                </p>
+                                                <p class="text-xs text-slate-500">{{ $absen->time }} WIB</p>
                                             </div>
                                         </div>
                                     </li>

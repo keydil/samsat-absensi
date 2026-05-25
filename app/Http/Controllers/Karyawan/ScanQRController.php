@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Karyawan;
 use App\Http\Controllers\Controller;
 use App\Models\Absen;
 use App\Models\QrCode as QrCodeModel;
-use App\Models\Shift;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,13 +13,13 @@ class ScanQRController extends Controller
 {
     public function index()
     {
-        $absens = Absen::with('shift')->where('user_id', Auth::id())->latest('date')->get();
+        $absens = Absen::where('user_id', Auth::id())->latest('date')->get();
         return view('content.karyawan.absensi-qr.index', compact('absens'));
     }
 
     public function check(Request $request)
     {
-        $qr = QrCodeModel::with('shift')->where('code_qr', $request->code_qr)->first();
+        $qr = QrCodeModel::where('code_qr', $request->code_qr)->first();
 
         if (!$qr) {
             return response()->json(['success' => false, 'message' => 'QR Code tidak ditemukan.']);
@@ -38,8 +37,6 @@ class ScanQRController extends Controller
             'success' => true,
             'data' => [
                 'qr_id' => $qr->id,
-                'shift_id' => $qr->shift_id,
-                'shift' => $qr->shift->shift_name ?? 'Harian',
                 'present_type' => $qr->present == 'in_present' ? 'Masuk' : 'Keluar',
                 'date' => Carbon::parse($qr->date)->format('d-m-Y'),
             ],
@@ -142,7 +139,6 @@ class ScanQRController extends Controller
         try {
             Absen::create([
                 'user_id' => $user->id,
-                'shift_id' => null,
                 'qr_code_id' => $qr->id,
                 'date' => $qr->date,
                 'time' => Carbon::now('Asia/Jakarta')->format('H:i'),
@@ -247,7 +243,6 @@ class ScanQRController extends Controller
         try {
             Absen::create([
                 'user_id' => $user->id,
-                'shift_id' => null,
                 'qr_code_id' => null,
                 'date' => $today,
                 'time' => Carbon::now('Asia/Jakarta')->format('H:i'),

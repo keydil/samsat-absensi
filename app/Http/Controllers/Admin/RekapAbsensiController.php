@@ -15,7 +15,7 @@ class RekapAbsensiController extends Controller
     {
         $tanggalFilter = $request->input('tanggal');
 
-        $query = Absen::with(['user', 'shift'])
+        $query = Absen::with(['user'])
             ->orderBy('created_at', 'desc');
 
         if ($tanggalFilter) {

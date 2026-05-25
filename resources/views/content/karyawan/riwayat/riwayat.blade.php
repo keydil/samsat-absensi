@@ -42,7 +42,6 @@
                     <thead class="bg-slate-50 text-xs uppercase font-bold text-slate-500">
                         <tr>
                             <th class="px-6 py-4">Tanggal</th>
-                            <th class="px-6 py-4">Shift</th>
                             <th class="px-6 py-4">Jam Masuk</th>
                             <th class="px-6 py-4">Jam Pulang</th>
                             <th class="px-6 py-4 text-center">Status</th>
@@ -53,12 +52,6 @@
                             <tr class="hover:bg-slate-50 transition-colors">
                                 <td class="px-6 py-4 font-medium text-slate-700">
                                     {{ \Carbon\Carbon::parse($item->created_at)->translatedFormat('d F Y') }}
-                                </td>
-
-                                <td class="px-6 py-4">
-                                    <span class="inline-flex items-center rounded-md bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600 ring-1 ring-inset ring-slate-500/10">
-                                        {{ $item->shift->shift_name ?? '-' }}
-                                    </span>
                                 </td>
 
                                 <td class="px-6 py-4 font-mono text-xs">

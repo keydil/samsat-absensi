@@ -24,8 +24,7 @@ class GenerateQRController extends Controller
             ->update(['status' => 'expired']);
 
         // Ambil semua riwayat QR (read-only)
-        $activeQr = QrCodeModel::with('shift')
-            ->orderByDesc('created_at')
+        $activeQr = QrCodeModel::orderByDesc('created_at')
             ->get();
 
         return view('content.admin.generate-qr.index', compact('activeQr'));
@@ -154,7 +153,7 @@ class GenerateQRController extends Controller
      */
     public function show($code)
     {
-        $qr = QrCodeModel::with('shift')->where('code_qr', $code)->firstOrFail();
+        $qr = QrCodeModel::where('code_qr', $code)->firstOrFail();
         $showQR = QrCode::size(200)->generate($code);
         return view('content.admin.generate-qr.show', compact('qr', 'showQR'));
     }

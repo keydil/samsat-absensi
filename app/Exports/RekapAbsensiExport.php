@@ -22,10 +22,10 @@ class RekapAbsensiExport implements FromCollection, WithHeadings, ShouldAutoSize
 
     public function collection()
     {
-        $query = Absen::with(['user', 'shift'])->orderBy('created_at', 'desc');
+        $query = Absen::with(['user'])->orderBy('created_at', 'desc');
 
         if ($this->tanggal) {
-            $query->whereDate('created_at', $this->tanggal);
+            $query->whereDate('date', $this->tanggal);
         }
 
         $dataRaw = $query->get();
@@ -45,7 +45,6 @@ class RekapAbsensiExport implements FromCollection, WithHeadings, ShouldAutoSize
 
             return [
                 'Nama Pegawai' => $sample->user->name ?? 'User Terhapus',
-                'Shift' => $sample->shift->shift_name ?? '-',
                 'Tanggal' => Carbon::parse($sample->created_at)->translatedFormat('d F Y'),
                 'Jam Masuk' => $jamMasuk,
                 'Jam Pulang' => $jamPulang,
@@ -58,7 +57,7 @@ class RekapAbsensiExport implements FromCollection, WithHeadings, ShouldAutoSize
 
     public function headings(): array
     {
-        return ['Nama Pegawai', 'Shift', 'Tanggal', 'Jam Masuk', 'Jam Pulang', 'Status Akhir'];
+        return ['Nama Pegawai', 'Tanggal', 'Jam Masuk', 'Jam Pulang', 'Status Akhir'];
     }
 
     public function styles(Worksheet $sheet)
