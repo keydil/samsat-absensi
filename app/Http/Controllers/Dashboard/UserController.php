@@ -25,8 +25,7 @@ class UserController extends Controller
             ->count('date');
 
   
-        $riwayat = Absen::with('shift')
-            ->where('user_id', $user->id)
+        $riwayat = Absen::where('user_id', $user->id)
             ->latest()
             ->take(5)
             ->get();
@@ -37,8 +36,7 @@ class UserController extends Controller
     {
         $user = Auth::user();
 
-        $query = Absen::with('shift')
-            ->where('user_id', $user->id)
+        $query = Absen::where('user_id', $user->id)
             ->orderBy('created_at', 'desc');
 
         if ($request->has('tanggal') && $request->tanggal != null) {
