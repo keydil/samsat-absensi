@@ -456,7 +456,7 @@
             console.log('latitude:', userLatitude);
             console.log('longitude:', userLongitude);
 
-            fetch("{{ route('user.scanStore') }}", {
+            fetch("{{ route('user.scanStore', [], false) }}", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -548,7 +548,7 @@
             submitBtn.disabled = true;
             submitBtn.textContent = 'Mengirim...';
 
-            fetch("{{ route('user.storeNonPresence') }}", {
+            fetch("{{ route('user.storeNonPresence', [], false) }}", {
                 method: 'POST',
                 headers: { 
                     'X-CSRF-TOKEN': csrfToken,
