@@ -221,10 +221,10 @@ class ScanQRController extends Controller
                     ]);
 
                     $buktiSuratPath = $result['secure_url'];
-                } catch (\Exception $e) {
+                } catch (\Throwable $e) {
                     return response()->json([
                         'success' => false,
-                        'message' => 'Gagal upload ke Cloudinary: ' . $e->getMessage(),
+                        'message' => 'Gagal upload ke Cloudinary: ' . $e->getMessage() . ' di baris ' . $e->getLine(),
                     ]);
                 }
             } else {
@@ -254,10 +254,10 @@ class ScanQRController extends Controller
                 'lng_location_present' => null,
                 'bukti_surat' => $buktiSuratPath,
             ]);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal menyimpan pengajuan: ' . $e->getMessage(),
+                'message' => 'Gagal menyimpan pengajuan: ' . $e->getMessage() . ' di baris ' . $e->getLine(),
             ]);
         }
 

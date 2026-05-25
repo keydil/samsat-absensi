@@ -550,10 +550,19 @@
 
             fetch("{{ route('user.storeNonPresence') }}", {
                 method: 'POST',
-                headers: { 'X-CSRF-TOKEN': csrfToken },
+                headers: { 
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
+                },
                 body: formData
             })
-            .then(r => r.json())
+            .then(async r => {
+                if (!r.ok) {
+                    const err = await r.json().catch(() => null);
+                    throw err || { message: `HTTP Error ${r.status}` };
+                }
+                return r.json();
+            })
             .then(data => {
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Kirim Pengajuan';
@@ -569,7 +578,8 @@
             .catch(err => {
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Kirim Pengajuan';
-                Swal.fire('Error', 'Terjadi kesalahan jaringan.', 'error');
+                const errMsg = err.message || (err.errors ? Object.values(err.errors).flat().join('\n') : 'Terjadi kesalahan jaringan.');
+                Swal.fire('Error', errMsg, 'error');
             });
         }
     </script>
