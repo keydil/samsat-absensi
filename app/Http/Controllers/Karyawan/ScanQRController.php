@@ -80,9 +80,9 @@ class ScanQRController extends Controller
             return response()->json(['success' => false, 'message' => 'Kamu sudah melakukan absensi ini.']);
         }
 
-        $officeLat = (float) env('OFFICE_LAT', -6.9824624);
-        $officeLng = (float) env('OFFICE_LNG', 107.7540507);
-        $maxRadius = (float) env('OFFICE_RADIUS_METER', 50);
+        $officeLat = (float) \App\Models\Setting::get('OFFICE_LAT', -6.953797);
+        $officeLng = (float) \App\Models\Setting::get('OFFICE_LNG', 107.766743);
+        $maxRadius = (float) \App\Models\Setting::get('OFFICE_RADIUS_METER', 100);
         $distance = $this->haversineDistance($request->latitude, $request->longitude, $officeLat, $officeLng);
 
         if ($distance > $maxRadius) {
