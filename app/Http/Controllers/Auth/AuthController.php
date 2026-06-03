@@ -37,6 +37,7 @@ class AuthController extends Controller
 
         Auth::login($user);
         return $this->redirectUser();
+    }
 
     protected function redirectUser()
     {
