@@ -230,9 +230,9 @@
                                     </td>
                                     <td class="px-6 py-4 text-center">
                                         @if($pending->bukti_surat)
-                                            <button onclick="showSurat('{{ $pending->bukti_surat }}')" class="inline-flex items-center gap-1 rounded bg-white px-3 py-1.5 text-xs font-semibold text-blue-600 shadow-sm ring-1 ring-inset ring-blue-300 hover:bg-blue-50 transition">
+                                            <a href="{{ $pending->bukti_surat }}" target="_blank" class="inline-flex items-center gap-1 rounded bg-white px-3 py-1.5 text-xs font-semibold text-blue-600 shadow-sm ring-1 ring-inset ring-blue-300 hover:bg-blue-50 transition">
                                                 🖼️ Cek Surat
-                                            </button>
+                                            </a>
                                         @else
                                             <span class="text-xs text-slate-400">Tidak ada file</span>
                                         @endif
@@ -330,18 +330,6 @@
                 if (result.isConfirmed) {
                     document.getElementById('form-clear-old').submit();
                 }
-            });
-        }
-
-        // Lihat Surat (SweetAlert Image)
-        function showSurat(url) {
-            Swal.fire({
-                title: 'Bukti Surat',
-                imageUrl: url,
-                imageAlt: 'Bukti Surat',
-                width: '80%',
-                showCloseButton: true,
-                showConfirmButton: false,
             });
         }
     </script>
