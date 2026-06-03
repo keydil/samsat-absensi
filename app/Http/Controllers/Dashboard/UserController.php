@@ -25,8 +25,17 @@ class UserController extends Controller
             ->count('date');
 
   
-        $riwayat = Absen::where('user_id', $user->id)
-            ->latest()
+        $riwayat = Absen::selectRaw('
+                date,
+                MAX(CASE WHEN present_desc_system LIKE "%Masuk%" THEN created_at END) as jam_masuk,
+                MAX(CASE WHEN present_desc_system LIKE "%Keluar%" THEN created_at END) as jam_pulang,
+                MAX(status) as status,
+                MAX(bukti_surat) as bukti_surat,
+                MIN(created_at) as created_at
+            ')
+            ->where('user_id', $user->id)
+            ->groupBy('date')
+            ->orderBy('date', 'desc')
             ->take(5)
             ->get();
 
@@ -36,8 +45,17 @@ class UserController extends Controller
     {
         $user = Auth::user();
 
-        $query = Absen::where('user_id', $user->id)
-            ->orderBy('created_at', 'desc');
+        $query = Absen::selectRaw('
+                date,
+                MAX(CASE WHEN present_desc_system LIKE "%Masuk%" THEN created_at END) as jam_masuk,
+                MAX(CASE WHEN present_desc_system LIKE "%Keluar%" THEN created_at END) as jam_pulang,
+                MAX(status) as status,
+                MAX(bukti_surat) as bukti_surat,
+                MIN(created_at) as created_at
+            ')
+            ->where('user_id', $user->id)
+            ->groupBy('date')
+            ->orderBy('date', 'desc');
 
         if ($request->has('tanggal') && $request->tanggal != null) {
             $query->whereDate('created_at', $request->tanggal);

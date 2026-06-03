@@ -94,8 +94,8 @@
                         <thead class="bg-slate-50 text-xs uppercase font-bold text-slate-500">
                             <tr>
                                 <th class="px-6 py-3">Pegawai</th>
-                                <th class="px-6 py-3">Aktivitas</th>
-                                <th class="px-6 py-3">Waktu</th>
+                                <th class="px-6 py-3">Jam Masuk</th>
+                                <th class="px-6 py-3">Jam Pulang</th>
                                 <th class="px-6 py-3 text-center">Status</th>
                             </tr>
                         </thead>
@@ -105,11 +105,19 @@
                                     <td class="px-6 py-3 font-medium text-slate-900">
                                         {{ $log->user->name ?? 'User Terhapus' }}
                                     </td>
-                                    <td class="px-6 py-3">
-                                        {{ $log->present_desc_system }}
+                                    <td class="px-6 py-3 font-mono text-xs">
+                                        @if($log->jam_masuk)
+                                            <span class="text-emerald-600 font-bold">{{ \Carbon\Carbon::parse($log->jam_masuk)->format('H:i') }}</span>
+                                        @else
+                                            <span class="text-slate-300">-</span>
+                                        @endif
                                     </td>
                                     <td class="px-6 py-3 font-mono text-xs">
-                                        {{ \Carbon\Carbon::parse($log->created_at)->diffForHumans() }}
+                                        @if($log->jam_pulang)
+                                            <span class="text-blue-600 font-bold">{{ \Carbon\Carbon::parse($log->jam_pulang)->format('H:i') }}</span>
+                                        @else
+                                            <span class="text-slate-300">-</span>
+                                        @endif
                                     </td>
                                     <td class="px-6 py-3 text-center">
                                         @if($log->status === 'Hadir')

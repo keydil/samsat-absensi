@@ -77,13 +77,13 @@
                                 </td>
 
                                 <td class="px-6 py-4 font-medium text-slate-700">
-                                    {{ \Carbon\Carbon::parse($item->created_at)->translatedFormat('d F Y') }}
+                                    {{ \Carbon\Carbon::parse($item->date)->translatedFormat('d F Y') }}
                                 </td>
 
                                 <td class="px-6 py-4 font-mono text-xs">
-                                    @if (str_contains($item->present_desc_system, 'Masuk'))
+                                    @if ($item->jam_masuk)
                                         <span class="text-emerald-600 font-bold">
-                                            {{ \Carbon\Carbon::parse($item->created_at)->format('H:i') }}
+                                            {{ \Carbon\Carbon::parse($item->jam_masuk)->format('H:i') }}
                                         </span>
                                     @else
                                         <span class="text-slate-300">-</span>
@@ -91,9 +91,9 @@
                                 </td>
 
                                 <td class="px-6 py-4 font-mono text-xs">
-                                    @if (str_contains($item->present_desc_system, 'Keluar'))
+                                    @if ($item->jam_pulang)
                                         <span class="text-blue-600 font-bold">
-                                            {{ \Carbon\Carbon::parse($item->created_at)->format('H:i') }}
+                                            {{ \Carbon\Carbon::parse($item->jam_pulang)->format('H:i') }}
                                         </span>
                                     @else
                                         <span class="text-slate-300">-</span>

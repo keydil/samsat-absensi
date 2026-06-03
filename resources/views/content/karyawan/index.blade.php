@@ -116,11 +116,11 @@
                             <li class="flex items-center justify-between gap-x-6 px-6 py-4 hover:bg-slate-50">
                                 <div class="flex min-w-0 gap-x-4">
                                     <div class="flex-shrink-0 h-10 w-10 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-600">
-                                        {{ substr($log->present_desc_system ?? 'A', 0, 1) }}
+                                        {{ \Carbon\Carbon::parse($log->date)->format('d') }}
                                     </div>
                                     <div class="min-w-0 flex-auto">
                                         <p class="text-sm font-semibold leading-6 text-slate-900">
-                                            {{ $log->present_desc_system ?? 'Absen' }}
+                                            {{ \Carbon\Carbon::parse($log->date)->translatedFormat('d F Y') }}
                                         </p>
                                         <div class="mt-1 flex items-center gap-2">
                                             @if($log->status === 'Hadir')
@@ -139,10 +139,10 @@
                                 </div>
                                 <div class="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
                                     <p class="text-sm leading-6 text-slate-900 font-mono">
-                                        {{ \Carbon\Carbon::parse($log->created_at)->format('H:i') }} WIB
+                                        <span class="text-emerald-600 font-medium">In: {{ $log->jam_masuk ? \Carbon\Carbon::parse($log->jam_masuk)->format('H:i') : '-' }}</span>
                                     </p>
-                                    <p class="mt-1 text-xs leading-5 text-slate-500">
-                                        {{ \Carbon\Carbon::parse($log->created_at)->translatedFormat('d F Y') }}
+                                    <p class="mt-1 text-xs leading-5 text-slate-500 font-mono">
+                                        <span class="text-blue-600 font-medium">Out: {{ $log->jam_pulang ? \Carbon\Carbon::parse($log->jam_pulang)->format('H:i') : '-' }}</span>
                                     </p>
                                 </div>
                             </li>

@@ -36,8 +36,18 @@ class AdminController extends Controller
         $tidakHadir = $totalPegawai - ($hadirHariIni + $terlambat + $izinSakit);
         if($tidakHadir < 0) $tidakHadir = 0; // Jaga-jaga error minus
 
-        $riwayatTerbaru = Absen::with(['user'])
-            ->latest()
+        $riwayatTerbaru = Absen::selectRaw('
+                date,
+                user_id,
+                MAX(CASE WHEN present_desc_system LIKE "%Masuk%" THEN created_at END) as jam_masuk,
+                MAX(CASE WHEN present_desc_system LIKE "%Keluar%" THEN created_at END) as jam_pulang,
+                MAX(status) as status,
+                MAX(bukti_surat) as bukti_surat,
+                MIN(created_at) as created_at
+            ')
+            ->with('user')
+            ->groupBy('date', 'user_id')
+            ->orderBy('created_at', 'desc')
             ->take(5)
             ->get();
 
