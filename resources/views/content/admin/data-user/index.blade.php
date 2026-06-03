@@ -88,8 +88,7 @@
                                             </svg>
                                         </a>
                                         <!-- Tombol Hapus -->
-                                        <form action="{{ route('admin.dataUser.destroy', $item) }}" method="POST"
-                                            onsubmit="return confirm('Yakin hapus pegawai {{ $item->name }}?')">
+                                        <form action="{{ route('admin.dataUser.destroy', $item) }}" method="POST" class="form-delete" data-name="{{ $item->name }}">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit"
@@ -132,3 +131,29 @@
 
     </div>
 @endsection
+
+@push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.querySelectorAll('.form-delete').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const name = this.getAttribute('data-name');
+                Swal.fire({
+                    title: 'Hapus Pegawai?',
+                    text: `Anda yakin ingin menghapus data pegawai "${name}"? Tindakan ini tidak dapat dibatalkan.`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#94a3b8',
+                    confirmButtonText: 'Ya, Hapus!',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        this.submit();
+                    }
+                });
+            });
+        });
+    </script>
+@endpush
