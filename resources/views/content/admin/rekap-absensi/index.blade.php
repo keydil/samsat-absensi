@@ -114,29 +114,58 @@
                                 </td>
 
                                 @if(in_array($item->status, ['Izin', 'Sakit']))
-                                    <td colspan="2" class="px-6 py-4 bg-slate-50/50">
-                                        <div class="flex items-center justify-center gap-3">
-                                            <p class="text-xs text-slate-500 italic truncate max-w-[200px]" title="{{ $item->status_desc }}">
-                                                "{{ $item->status_desc ?? 'Tanpa keterangan' }}"
-                                            </p>
-                                            
-                                            @if($item->approval_status == 'pending')
-                                                <span class="inline-flex items-center gap-1.5 rounded-md bg-amber-50 px-2.5 py-1 text-[10px] font-semibold text-amber-700 ring-1 ring-inset ring-amber-600/20">
-                                                    <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                                    Menunggu Persetujuan
-                                                </span>
-                                            @elseif($item->approval_status == 'rejected')
-                                                <span class="inline-flex items-center gap-1.5 rounded-md bg-rose-50 px-2.5 py-1 text-[10px] font-semibold text-rose-700 ring-1 ring-inset ring-rose-600/20">
-                                                    <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                                                    Ditolak
-                                                </span>
-                                            @elseif($item->approval_status == 'approved')
-                                                <span class="inline-flex items-center gap-1.5 rounded-md bg-emerald-50 px-2.5 py-1 text-[10px] font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-600/20">
-                                                    <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
-                                                    Disetujui
-                                                </span>
-                                            @endif
-                                        </div>
+                                    <td colspan="3" class="p-4">
+                                        @if($item->status === 'Izin')
+                                            <div class="relative flex items-center justify-between rounded-xl border border-blue-100 bg-blue-50/50 p-3 transition-colors hover:bg-blue-50">
+                                                <div class="absolute left-0 top-0 bottom-0 w-1 bg-blue-400 rounded-l-xl"></div>
+                                                <div class="flex items-center gap-4 pl-3">
+                                                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-slate-100 text-blue-600">
+                                                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                                                    </div>
+                                        @else
+                                            <div class="relative flex items-center justify-between rounded-xl border border-rose-100 bg-rose-50/50 p-3 transition-colors hover:bg-rose-50">
+                                                <div class="absolute left-0 top-0 bottom-0 w-1 bg-rose-400 rounded-l-xl"></div>
+                                                <div class="flex items-center gap-4 pl-3">
+                                                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-slate-100 text-rose-600">
+                                                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                                                    </div>
+                                        @endif
+                                                    <div>
+                                                        <div class="flex items-center gap-2.5">
+                                                            <span class="font-bold {{ $item->status === 'Izin' ? 'text-blue-700' : 'text-rose-700' }}">{{ $item->status }}</span>
+                                                            
+                                                            @if($item->approval_status == 'pending')
+                                                                <span class="inline-flex items-center gap-1.5 rounded bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-amber-700">
+                                                                    <span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span></span>
+                                                                    Menunggu
+                                                                </span>
+                                                            @elseif($item->approval_status == 'rejected')
+                                                                <span class="inline-flex items-center gap-1.5 rounded bg-rose-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-rose-700">
+                                                                    <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                                                    Ditolak
+                                                                </span>
+                                                            @elseif($item->approval_status == 'approved')
+                                                                <span class="inline-flex items-center gap-1.5 rounded bg-emerald-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-emerald-700">
+                                                                    <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                                                                    Disetujui
+                                                                </span>
+                                                            @endif
+                                                        </div>
+                                                        <p class="mt-1 text-xs italic text-slate-500 line-clamp-1 max-w-[300px]">
+                                                            "{{ $item->status_desc ?? 'Tanpa keterangan' }}"
+                                                        </p>
+                                                    </div>
+                                                </div>
+
+                                                @if($item->bukti_surat)
+                                                    <div class="pr-2">
+                                                        <a href="{{ $item->bukti_surat }}" target="_blank" class="group flex items-center gap-2 rounded-lg bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm ring-1 ring-inset ring-slate-200 transition-all hover:bg-slate-50 hover:ring-slate-300">
+                                                            <svg class="h-4 w-4 text-slate-400 transition-colors group-hover:text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
+                                                            Cek Dokumen
+                                                        </a>
+                                                    </div>
+                                                @endif
+                                            </div>
                                     </td>
                                 @else
                                     <td class="px-6 py-4 font-mono text-xs">
@@ -158,30 +187,19 @@
                                             <span class="text-slate-300">-</span>
                                         @endif
                                     </td>
-                                @endif
 
-                                <td class="px-6 py-4 text-center">
-                                    <div class="flex flex-col items-center gap-2">
-                                        @if($item->status === 'Hadir')
-                                            <span class="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20">Hadir</span>
-                                        @elseif($item->status === 'Telat')
-                                            <span class="inline-flex items-center rounded-full bg-orange-50 px-2.5 py-1 text-xs font-medium text-orange-700 ring-1 ring-inset ring-orange-600/20">Telat</span>
-                                        @elseif($item->status === 'Izin')
-                                            <span class="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-600/20">Izin</span>
-                                        @elseif($item->status === 'Sakit')
-                                            <span class="inline-flex items-center rounded-full bg-rose-50 px-2.5 py-1 text-xs font-medium text-rose-700 ring-1 ring-inset ring-rose-600/20">Sakit</span>
-                                        @else
-                                            <span class="inline-flex items-center rounded-full bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-700 ring-1 ring-inset ring-slate-600/20">{{ $item->status }}</span>
-                                        @endif
-                                        
-                                        @if($item->bukti_surat)
-                                            <a href="{{ $item->bukti_surat }}" target="_blank" class="inline-flex items-center gap-1.5 rounded bg-white px-2.5 py-1 text-[10px] font-semibold text-slate-700 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50 transition">
-                                                <svg class="h-3 w-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
-                                                Lihat Surat
-                                            </a>
-                                        @endif
-                                    </div>
-                                </td>
+                                    <td class="px-6 py-4 text-center">
+                                        <div class="flex flex-col items-center gap-2">
+                                            @if($item->status === 'Hadir')
+                                                <span class="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20">Hadir</span>
+                                            @elseif($item->status === 'Telat')
+                                                <span class="inline-flex items-center rounded-full bg-orange-50 px-2.5 py-1 text-xs font-medium text-orange-700 ring-1 ring-inset ring-orange-600/20">Telat</span>
+                                            @else
+                                                <span class="inline-flex items-center rounded-full bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-700 ring-1 ring-inset ring-slate-600/20">{{ $item->status }}</span>
+                                            @endif
+                                        </div>
+                                    </td>
+                                @endif
                                 <td class="px-6 py-4 text-center">
                                     <form action="{{ route('admin.rekap-absensi.destroy', ['user_id' => $item->user_id, 'date' => $item->date]) }}" method="POST" class="form-delete" data-name="{{ $item->user->name ?? 'User' }}" data-date="{{ \Carbon\Carbon::parse($item->date)->translatedFormat('d F Y') }}">
                                         @csrf
