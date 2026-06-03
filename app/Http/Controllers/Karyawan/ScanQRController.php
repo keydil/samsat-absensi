@@ -140,7 +140,8 @@ class ScanQRController extends Controller
         
         $finalStatus = $request->status;
         if ($qr->present == 'in_present' && $finalStatus == 'Hadir') {
-            $batasTelat = \App\Models\Setting::get('TOLERANSI_TELAT_MASUK', '08:00');
+            $day = strtoupper($now->format('l'));
+            $batasTelat = \App\Models\Setting::get("TOLERANSI_TELAT_MASUK_$day", '08:00');
             if ($timeNow > $batasTelat) {
                 $finalStatus = 'Telat';
             }

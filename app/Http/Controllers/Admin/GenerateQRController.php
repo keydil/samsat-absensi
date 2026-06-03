@@ -50,19 +50,21 @@ class GenerateQRController extends Controller
             ->where('end_time', '<', $now)
             ->update(['status' => 'expired']);
 
-        // Konfigurasi jadwal sesi dari .env
+        $day = strtoupper($now->format('l')); // MONDAY, TUESDAY, etc.
+
+        // Konfigurasi jadwal sesi per-hari dari Setting
         $sessions = [
             [
                 'type' => 'in_present',
                 'label' => 'Absen Masuk',
-                'start' => \App\Models\Setting::get('QR_SESSION_IN_START', '07:00'),
-                'end' => \App\Models\Setting::get('QR_SESSION_IN_END', '09:00'),
+                'start' => \App\Models\Setting::get("QR_SESSION_IN_START_$day", '07:00'),
+                'end' => \App\Models\Setting::get("QR_SESSION_IN_END_$day", '09:00'),
             ],
             [
                 'type' => 'out_present',
                 'label' => 'Absen Pulang',
-                'start' => \App\Models\Setting::get('QR_SESSION_OUT_START', '16:00'),
-                'end' => \App\Models\Setting::get('QR_SESSION_OUT_END', '17:00'),
+                'start' => \App\Models\Setting::get("QR_SESSION_OUT_START_$day", '16:00'),
+                'end' => \App\Models\Setting::get("QR_SESSION_OUT_END_$day", '17:00'),
             ],
         ];
 

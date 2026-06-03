@@ -16,16 +16,23 @@ class SettingController extends Controller
 
     public function update(Request $request)
     {
-        $validated = $request->validate([
+        $rules = [
             'OFFICE_LAT' => 'required|numeric',
             'OFFICE_LNG' => 'required|numeric',
             'OFFICE_RADIUS_METER' => 'required|numeric',
-            'TOLERANSI_TELAT_MASUK' => 'required|string',
-            'QR_SESSION_IN_START' => 'required|string',
-            'QR_SESSION_IN_END' => 'required|string',
-            'QR_SESSION_OUT_START' => 'required|string',
-            'QR_SESSION_OUT_END' => 'required|string',
-        ]);
+        ];
+
+        // Looping validasi per-hari
+        $days = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'];
+        foreach ($days as $day) {
+            $rules["TOLERANSI_TELAT_MASUK_$day"] = 'required|string';
+            $rules["QR_SESSION_IN_START_$day"] = 'required|string';
+            $rules["QR_SESSION_IN_END_$day"] = 'required|string';
+            $rules["QR_SESSION_OUT_START_$day"] = 'required|string';
+            $rules["QR_SESSION_OUT_END_$day"] = 'required|string';
+        }
+
+        $validated = $request->validate($rules);
 
         foreach ($validated as $key => $value) {
             Setting::set($key, $value);

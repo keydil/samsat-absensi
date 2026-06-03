@@ -24,43 +24,76 @@
             @csrf
             
             <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                {{-- Jadwal Absensi --}}
-                <div class="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-                    <div class="border-b border-slate-100 bg-slate-50/50 px-6 py-4">
-                        <h3 class="font-bold text-slate-800">Jadwal Sesi Absensi</h3>
-                        <p class="text-xs text-slate-500 mt-1">Gunakan format HH:MM (contoh: 07:00)</p>
+                {{-- Jadwal Absensi Per-Hari --}}
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-lg font-bold tracking-tight text-slate-800">Jadwal Sesi Absensi</h2>
+                        <span class="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-700 ring-1 ring-inset ring-blue-700/10">Senin - Jumat</span>
                     </div>
-                    <div class="p-6 space-y-4">
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700">Masuk - Mulai</label>
-                                <input type="time" name="QR_SESSION_IN_START" value="{{ $settings['QR_SESSION_IN_START'] ?? '07:00' }}" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700">Masuk - Selesai</label>
-                                <input type="time" name="QR_SESSION_IN_END" value="{{ $settings['QR_SESSION_IN_END'] ?? '09:00' }}" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
-                            </div>
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700">Toleransi Telat (Masuk)</label>
-                            <p class="text-xs text-slate-500 mb-1">Absen di atas jam ini akan otomatis tercatat 'Telat'</p>
-                            <input type="time" name="TOLERANSI_TELAT_MASUK" value="{{ $settings['TOLERANSI_TELAT_MASUK'] ?? '08:00' }}" class="block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
-                        </div>
 
-                        <hr class="border-slate-100">
+                    @php
+                        $hari = [
+                            'MONDAY' => 'Senin',
+                            'TUESDAY' => 'Selasa',
+                            'WEDNESDAY' => 'Rabu',
+                            'THURSDAY' => 'Kamis',
+                            'FRIDAY' => 'Jumat'
+                        ];
+                        $todayKey = strtoupper(now()->format('l'));
+                    @endphp
 
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700">Pulang - Mulai</label>
-                                <input type="time" name="QR_SESSION_OUT_START" value="{{ $settings['QR_SESSION_OUT_START'] ?? '15:00' }}" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                    @foreach($hari as $key => $namaHari)
+                        @php
+                            $isToday = ($todayKey == $key);
+                        @endphp
+                        <div class="relative rounded-xl border {{ $isToday ? 'border-blue-400 bg-blue-50/30 shadow-md ring-1 ring-blue-400' : 'border-slate-200 bg-white opacity-70 hover:opacity-100 transition-opacity' }} overflow-hidden">
+                            
+                            @if($isToday)
+                                <div class="absolute top-0 right-0 rounded-bl-xl bg-blue-600 px-3 py-1 text-[10px] font-bold text-white shadow-sm flex items-center gap-1">
+                                    <span class="relative flex h-2 w-2">
+                                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                                      <span class="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                                    </span>
+                                    HARI INI
+                                </div>
+                            @endif
+
+                            <div class="border-b {{ $isToday ? 'border-blue-100 bg-blue-100/50' : 'border-slate-100 bg-slate-50/50' }} px-4 py-3">
+                                <h3 class="font-bold {{ $isToday ? 'text-blue-800' : 'text-slate-800' }}">Hari {{ $namaHari }}</h3>
                             </div>
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700">Pulang - Selesai</label>
-                                <input type="time" name="QR_SESSION_OUT_END" value="{{ $settings['QR_SESSION_OUT_END'] ?? '17:00' }}" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                            
+                            <div class="p-4 space-y-4">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-xs font-semibold text-slate-700">Masuk - Mulai</label>
+                                        <input type="time" name="QR_SESSION_IN_START_{{ $key }}" value="{{ $settings['QR_SESSION_IN_START_'.$key] ?? '07:00' }}" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-semibold text-slate-700">Masuk - Selesai</label>
+                                        <input type="time" name="QR_SESSION_IN_END_{{ $key }}" value="{{ $settings['QR_SESSION_IN_END_'.$key] ?? '09:00' }}" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700">Batas Toleransi Telat (Masuk)</label>
+                                    <input type="time" name="TOLERANSI_TELAT_MASUK_{{ $key }}" value="{{ $settings['TOLERANSI_TELAT_MASUK_'.$key] ?? '08:00' }}" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                                </div>
+
+                                <hr class="{{ $isToday ? 'border-blue-200/50' : 'border-slate-100' }}">
+
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-xs font-semibold text-slate-700">Pulang - Mulai</label>
+                                        <input type="time" name="QR_SESSION_OUT_START_{{ $key }}" value="{{ $settings['QR_SESSION_OUT_START_'.$key] ?? '15:00' }}" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-semibold text-slate-700">Pulang - Selesai</label>
+                                        <input type="time" name="QR_SESSION_OUT_END_{{ $key }}" value="{{ $settings['QR_SESSION_OUT_END_'.$key] ?? '17:00' }}" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    @endforeach
                 </div>
 
                 {{-- Geofencing Map --}}
