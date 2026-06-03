@@ -46,10 +46,11 @@
                         @php
                             $isToday = ($todayKey == $key);
                         @endphp
-                        <div class="relative rounded-xl border {{ $isToday ? 'border-blue-400 bg-blue-50/30 shadow-md ring-1 ring-blue-400' : 'border-slate-200 bg-white opacity-70 hover:opacity-100 transition-opacity' }} overflow-hidden">
+                        <div x-data="{ open: {{ $isToday ? 'true' : 'false' }} }" 
+                             class="relative rounded-xl border {{ $isToday ? 'border-blue-400 shadow-md ring-1 ring-blue-400' : 'border-slate-200 shadow-sm' }} bg-white overflow-hidden transition-all duration-200">
                             
                             @if($isToday)
-                                <div class="absolute top-0 right-0 rounded-bl-xl bg-blue-600 px-3 py-1 text-[10px] font-bold text-white shadow-sm flex items-center gap-1">
+                                <div class="absolute top-0 right-0 rounded-bl-xl bg-blue-600 px-3 py-1 text-[10px] font-bold text-white shadow-sm flex items-center gap-1 z-10">
                                     <span class="relative flex h-2 w-2">
                                       <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
                                       <span class="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
@@ -58,37 +59,45 @@
                                 </div>
                             @endif
 
-                            <div class="border-b {{ $isToday ? 'border-blue-100 bg-blue-100/50' : 'border-slate-100 bg-slate-50/50' }} px-4 py-3">
-                                <h3 class="font-bold {{ $isToday ? 'text-blue-800' : 'text-slate-800' }}">Hari {{ $namaHari }}</h3>
-                            </div>
+                            <button type="button" @click="open = !open" 
+                                    class="w-full text-left border-b {{ $isToday ? 'border-blue-100 bg-blue-50/80 hover:bg-blue-100' : 'border-slate-100 bg-slate-50 hover:bg-slate-100' }} px-5 py-4 flex justify-between items-center transition-colors">
+                                <h3 class="font-bold {{ $isToday ? 'text-blue-800' : 'text-slate-700' }}">Hari {{ $namaHari }}</h3>
+                                <svg class="h-5 w-5 transform transition-transform duration-200" 
+                                     :class="{'rotate-180': open}" 
+                                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
                             
-                            <div class="p-4 space-y-4">
-                                <div class="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label class="block text-xs font-semibold text-slate-700">Masuk - Mulai</label>
-                                        <input type="time" name="QR_SESSION_IN_START_{{ $key }}" value="{{ $settings['QR_SESSION_IN_START_'.$key] ?? '07:00' }}" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                            <div x-show="open" x-collapse x-cloak>
+                                <div class="p-5 space-y-5 bg-white">
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-xs font-semibold text-slate-700">Masuk - Mulai</label>
+                                            <input type="time" name="QR_SESSION_IN_START_{{ $key }}" value="{{ $settings['QR_SESSION_IN_START_'.$key] ?? '07:00' }}" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-semibold text-slate-700">Masuk - Selesai</label>
+                                            <input type="time" name="QR_SESSION_IN_END_{{ $key }}" value="{{ $settings['QR_SESSION_IN_END_'.$key] ?? '09:00' }}" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                                        </div>
                                     </div>
+                                    
                                     <div>
-                                        <label class="block text-xs font-semibold text-slate-700">Masuk - Selesai</label>
-                                        <input type="time" name="QR_SESSION_IN_END_{{ $key }}" value="{{ $settings['QR_SESSION_IN_END_'.$key] ?? '09:00' }}" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                                        <label class="block text-xs font-semibold text-slate-700">Batas Toleransi Telat (Masuk)</label>
+                                        <input type="time" name="TOLERANSI_TELAT_MASUK_{{ $key }}" value="{{ $settings['TOLERANSI_TELAT_MASUK_'.$key] ?? '08:00' }}" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
                                     </div>
-                                </div>
-                                
-                                <div>
-                                    <label class="block text-xs font-semibold text-slate-700">Batas Toleransi Telat (Masuk)</label>
-                                    <input type="time" name="TOLERANSI_TELAT_MASUK_{{ $key }}" value="{{ $settings['TOLERANSI_TELAT_MASUK_'.$key] ?? '08:00' }}" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
-                                </div>
 
-                                <hr class="{{ $isToday ? 'border-blue-200/50' : 'border-slate-100' }}">
+                                    <hr class="{{ $isToday ? 'border-blue-100' : 'border-slate-100' }}">
 
-                                <div class="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label class="block text-xs font-semibold text-slate-700">Pulang - Mulai</label>
-                                        <input type="time" name="QR_SESSION_OUT_START_{{ $key }}" value="{{ $settings['QR_SESSION_OUT_START_'.$key] ?? '15:00' }}" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-semibold text-slate-700">Pulang - Selesai</label>
-                                        <input type="time" name="QR_SESSION_OUT_END_{{ $key }}" value="{{ $settings['QR_SESSION_OUT_END_'.$key] ?? '17:00' }}" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-xs font-semibold text-slate-700">Pulang - Mulai</label>
+                                            <input type="time" name="QR_SESSION_OUT_START_{{ $key }}" value="{{ $settings['QR_SESSION_OUT_START_'.$key] ?? '15:00' }}" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-semibold text-slate-700">Pulang - Selesai</label>
+                                            <input type="time" name="QR_SESSION_OUT_END_{{ $key }}" value="{{ $settings['QR_SESSION_OUT_END_'.$key] ?? '17:00' }}" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                                        </div>
                                     </div>
                                 </div>
                             </div>
