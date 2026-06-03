@@ -146,6 +146,26 @@
                                         @else
                                             <span class="inline-flex items-center rounded-full bg-slate-50 px-2 py-1 text-xs font-medium text-slate-700 ring-1 ring-inset ring-slate-600/20">{{ $item->status }}</span>
                                         @endif
+
+                                        @if(in_array($item->status, ['Izin', 'Sakit']))
+                                            <p class="text-[10px] text-slate-500 italic text-center max-w-[150px] truncate" title="{{ $item->status_desc }}">
+                                                "{{ $item->status_desc ?? 'Tanpa keterangan' }}"
+                                            </p>
+                                            
+                                            @if($item->approval_status == 'pending')
+                                                <span class="inline-flex items-center gap-1 rounded bg-amber-50 px-2 py-1 text-[10px] font-semibold text-amber-700 ring-1 ring-inset ring-amber-600/20">
+                                                    ⏳ Menunggu
+                                                </span>
+                                            @elseif($item->approval_status == 'rejected')
+                                                <span class="inline-flex items-center gap-1 rounded bg-rose-50 px-2 py-1 text-[10px] font-semibold text-rose-700 ring-1 ring-inset ring-rose-600/20">
+                                                    ❌ Ditolak
+                                                </span>
+                                            @elseif($item->approval_status == 'approved')
+                                                <span class="inline-flex items-center gap-1 rounded bg-emerald-50 px-2 py-1 text-[10px] font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-600/20">
+                                                    ✅ Disetujui
+                                                </span>
+                                            @endif
+                                        @endif
                                         
                                         @if($item->bukti_surat)
                                             <a href="{{ $item->bukti_surat }}" target="_blank" class="inline-flex items-center gap-1 rounded bg-white px-2 py-1 text-[10px] font-semibold text-slate-700 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50 transition">
