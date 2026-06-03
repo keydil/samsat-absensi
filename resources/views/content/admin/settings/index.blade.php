@@ -96,7 +96,13 @@
                 </div>
             </div>
 
-            <div class="flex justify-end">
+            <div class="flex items-center justify-end">
+                <div id="unsaved_alert" class="hidden mr-4 text-sm font-medium text-amber-600 bg-amber-50 px-4 py-2 rounded-lg ring-1 ring-amber-200 flex items-center gap-2 transition-all">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    Ada perubahan yang belum disimpan!
+                </div>
                 <button type="submit" class="rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all">
                     Simpan Pengaturan
                 </button>
@@ -107,6 +113,7 @@
 
 @push('scripts')
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         const initLat = parseFloat("{{ $settings['OFFICE_LAT'] ?? '-6.953797' }}");
         const initLng = parseFloat("{{ $settings['OFFICE_LNG'] ?? '107.766743' }}");
@@ -126,7 +133,21 @@
             radius: initRadius
         }).addTo(map);
 
+        // Unsaved changes detection
+        function showUnsavedWarning() {
+            document.getElementById('unsaved_alert').classList.remove('hidden');
+        }
+
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('change', showUnsavedWarning);
+            input.addEventListener('input', showUnsavedWarning);
+        });
+
         // Update inputs when marker is dragged
+        marker.on('dragstart', function (e) {
+            showUnsavedWarning();
+        });
+
         marker.on('dragend', function (e) {
             const pos = marker.getLatLng();
             updateLatLngInputs(pos.lat, pos.lng);
@@ -140,19 +161,36 @@
         }
 
         function updateCircleRadius() {
+            showUnsavedWarning();
             const rad = parseFloat(document.getElementById('radius_input').value) || 100;
             circle.setRadius(rad);
         }
 
         function useCurrentLocation() {
             if (navigator.geolocation) {
+                Swal.fire({
+                    title: 'Mencari Lokasi...',
+                    text: 'Mohon izinkan akses GPS di browser Anda.',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading()
+                    }
+                });
+
                 navigator.geolocation.getCurrentPosition(
                     function(position) {
                         const lat = position.coords.latitude;
                         const lng = position.coords.longitude;
                         marker.setLatLng([lat, lng]);
                         updateLatLngInputs(lat, lng);
-                        alert("Lokasi berhasil diperbarui sesuai GPS Anda saat ini!");
+                        showUnsavedWarning();
+                        
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Lokasi Ditemukan!',
+                            text: 'Pin Peta berhasil dipindahkan ke lokasi Anda saat ini. Jangan lupa klik Simpan Pengaturan.',
+                            confirmButtonColor: '#2563eb'
+                        });
                     }, 
                     function(error) {
                         let errorMsg = "Gagal mendapatkan lokasi. ";
@@ -170,12 +208,18 @@
                                 errorMsg += "Terjadi kesalahan tidak dikenal: " + error.message;
                                 break;
                         }
-                        alert(errorMsg);
+                        
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal Akses GPS',
+                            text: errorMsg,
+                            confirmButtonColor: '#ef4444'
+                        });
                     },
                     { enableHighAccuracy: true }
                 );
             } else {
-                alert("Browser Anda tidak mendukung GPS.");
+                Swal.fire('Error', 'Browser Anda tidak mendukung GPS.', 'error');
             }
         }
     </script>
