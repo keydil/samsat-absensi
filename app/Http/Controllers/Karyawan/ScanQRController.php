@@ -139,10 +139,16 @@ class ScanQRController extends Controller
                     @unlink($tempPath);
                     $faceImagePath = $result['secure_url'];
                 } catch (\Exception $e) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Cloudinary error: ' . $e->getMessage() . ' | Class: ' . get_class($e),
-                    ]);
+                    // Fallback to local storage if Cloudinary fails (e.g. rate limit)
+                    $imageData = preg_replace('#^data:image/\w+;base64,#i', '', $request->face_image);
+                    $imageDecoded = base64_decode($imageData);
+                    $filename = 'face_' . $user->id . '_' . time() . '_fallback.jpg';
+                    $path = public_path('images/absensi/' . $filename);
+                    if (!file_exists(public_path('images/absensi'))) {
+                        mkdir(public_path('images/absensi'), 0755, true);
+                    }
+                    file_put_contents($path, $imageDecoded);
+                    $faceImagePath = asset('images/absensi/' . $filename);
                 }
             } else {
                 try {
@@ -258,10 +264,14 @@ class ScanQRController extends Controller
 
                     $buktiSuratPath = $result['secure_url'];
                 } catch (\Throwable $e) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Gagal upload ke Cloudinary: ' . $e->getMessage() . ' di baris ' . $e->getLine(),
-                    ]);
+                    // Fallback to local storage if Cloudinary fails
+                    $filename = 'surat_' . $user->id . '_' . time() . '_fallback.' . $file->getClientOriginalExtension();
+                    $destinationPath = public_path('images/surat');
+                    if (!file_exists($destinationPath)) {
+                        mkdir($destinationPath, 0755, true);
+                    }
+                    $file->move($destinationPath, $filename);
+                    $buktiSuratPath = asset('images/surat/' . $filename);
                 }
             } else {
                 // Simpan ke local storage
