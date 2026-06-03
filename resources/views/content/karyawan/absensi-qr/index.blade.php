@@ -162,9 +162,9 @@
         let faceStream = null;
         let faceInterval = null;
 
-        const OFFICE_LAT = {{ env('OFFICE_LAT', -6.9824624) }};
-        const OFFICE_LNG = {{ env('OFFICE_LNG', 107.7540507) }};
-        const MAX_RADIUS = {{ env('OFFICE_RADIUS_METER', 50) }};
+        const OFFICE_LAT = {{ \App\Models\Setting::get('OFFICE_LAT', -6.953797) }};
+        const OFFICE_LNG = {{ \App\Models\Setting::get('OFFICE_LNG', 107.766743) }};
+        const MAX_RADIUS = {{ \App\Models\Setting::get('OFFICE_RADIUS_METER', 100) }};
 
         function haversineJS(lat1, lng1, lat2, lng2) {
             const R = 6371000;

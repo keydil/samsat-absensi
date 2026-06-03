@@ -72,6 +72,10 @@ Route::middleware(['RoleUser:Admin'])->group(function () {
     // Route Rekap Absensi
     Route::get('/dashboard/admin/rekap-absensi', [RekapAbsensiController::class, 'index'])->name('admin.rekap-absensi');
     Route::get('/dashboard/admin/rekap-absensi/export', [RekapAbsensiController::class, 'export'])->name('admin.rekap-absensi.export');
+
+    // Route Pengaturan (Settings)
+    Route::get('/dashboard/admin/settings', [\App\Http\Controllers\Admin\SettingController::class, 'index'])->name('admin.settings');
+    Route::post('/dashboard/admin/settings', [\App\Http\Controllers\Admin\SettingController::class, 'update'])->name('admin.settings.update');
 });
 
 Route::middleware(['RoleUser:Karyawan'])->group(function () {

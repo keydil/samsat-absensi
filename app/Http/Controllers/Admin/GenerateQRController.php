@@ -55,14 +55,14 @@ class GenerateQRController extends Controller
             [
                 'type' => 'in_present',
                 'label' => 'Absen Masuk',
-                'start' => env('QR_SESSION_IN_START', '07:00'),
-                'end' => env('QR_SESSION_IN_END', '09:00'),
+                'start' => \App\Models\Setting::get('QR_SESSION_IN_START', '07:00'),
+                'end' => \App\Models\Setting::get('QR_SESSION_IN_END', '09:00'),
             ],
             [
                 'type' => 'out_present',
                 'label' => 'Absen Pulang',
-                'start' => env('QR_SESSION_OUT_START', '16:00'),
-                'end' => env('QR_SESSION_OUT_END', '17:00'),
+                'start' => \App\Models\Setting::get('QR_SESSION_OUT_START', '16:00'),
+                'end' => \App\Models\Setting::get('QR_SESSION_OUT_END', '17:00'),
             ],
         ];
 
