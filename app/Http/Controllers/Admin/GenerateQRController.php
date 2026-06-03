@@ -122,14 +122,21 @@ class GenerateQRController extends Controller
             ]);
         }
 
-        // Generate SVG QR Code
-        $qrSvg = QrCode::format('svg')->size(300)->generate($qr->code_qr);
+        // 3. Sistem Anti-Joki (Dynamic Cryptographic QR)
+        // Kita bungkus UUID dengan Timestamp saat ini, lalu digembok (HMAC)
+        $timestamp = time();
+        $payload = $qr->id . '|' . $timestamp;
+        $signature = hash_hmac('sha256', $payload, config('app.key'));
+        $secureQrString = $payload . '|' . $signature;
+
+        // Generate SVG QR Code dari string aman ini (berubah tiap detik)
+        $qrSvg = QrCode::format('svg')->size(300)->generate($secureQrString);
 
         return response()->json([
             'active' => true,
             'data' => [
                 'qr_id' => $qr->id,
-                'code_qr' => $qr->code_qr,
+                'code_qr' => $secureQrString,
                 'present_type' => $activeSession['type'],
                 'session_label' => $activeSession['label'],
                 'start_time' => Carbon::parse($qr->start_time)->format('H:i'),

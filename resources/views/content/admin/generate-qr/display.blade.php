@@ -124,6 +124,7 @@
             <div class="space-y-2">
                 <p class="text-xl font-bold text-white">Scan QR Code untuk Absen</p>
                 <p class="text-slate-400 text-sm">Arahkan kamera HP ke QR Code di atas</p>
+                <p class="text-[10px] text-blue-300 font-medium tracking-wide">🔒 Terenkripsi & Otomatis ganti tiap 10 detik</p>
                 <div class="flex items-center justify-center gap-2 mt-3">
                     <span class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
                     <span class="text-sm text-emerald-400 font-medium">Aktif sampai <span id="kiosk-end-time"
@@ -269,7 +270,7 @@
         }
 
         fetchKioskQR();
-        setInterval(fetchKioskQR, 15000);
+        setInterval(fetchKioskQR, 10000);
     </script>
 </body>
 

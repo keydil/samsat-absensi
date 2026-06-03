@@ -19,10 +19,35 @@ class ScanQRController extends Controller
 
     public function check(Request $request)
     {
-        $qr = QrCodeModel::where('code_qr', $request->code_qr)->first();
+        // Sistem Anti-Joki (Dynamic Cryptographic QR)
+        $qrString = $request->code_qr;
+        $parts = explode('|', $qrString);
+
+        if (count($parts) !== 3) {
+            return response()->json(['success' => false, 'message' => 'Format QR Code tidak valid atau sudah dimanipulasi.']);
+        }
+
+        $qrId = $parts[0];
+        $timestamp = $parts[1];
+        $signature = $parts[2];
+
+        // 1. Validasi Integritas (Signature HMAC)
+        $expectedSignature = hash_hmac('sha256', "$qrId|$timestamp", config('app.key'));
+        if (!hash_equals($expectedSignature, $signature)) {
+            return response()->json(['success' => false, 'message' => 'QR Code palsu atau telah dimodifikasi.']);
+        }
+
+        // 2. Validasi Kedaluwarsa (Maks 15 Detik)
+        $age = time() - (int)$timestamp;
+        if ($age > 15) {
+            return response()->json(['success' => false, 'message' => 'QR Code Kedaluwarsa! (' . $age . ' detik). Silakan scan langsung dari layar TV.']);
+        }
+
+        // 3. Lanjut seperti biasa
+        $qr = QrCodeModel::find($qrId);
 
         if (!$qr) {
-            return response()->json(['success' => false, 'message' => 'QR Code tidak ditemukan.']);
+            return response()->json(['success' => false, 'message' => 'QR Code tidak ditemukan di sistem.']);
         }
 
         $now = Carbon::now('Asia/Jakarta');
