@@ -9,7 +9,7 @@ class Absen extends Model
     protected $fillable = [
         'user_id', 'qr_code_id', 'date', 'time', 'hours',
         'present_desc_system', 'present_user_desc', 'present_user_image',
-        'status', 'status_desc', 'status_image',
+        'status', 'status_desc', 'status_image', 'approval_status',
         'lat_location_present', 'lng_location_present',
         'bukti_surat',
     ];

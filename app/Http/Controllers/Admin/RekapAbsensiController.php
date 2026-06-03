@@ -34,7 +34,13 @@ class RekapAbsensiController extends Controller
 
         $absensi = $query->paginate(10)->withQueryString(); // withQueryString biar pagination gak ngereset filter
 
-        return view('content.admin.rekap-absensi.index', compact('absensi'));
+        // Data Menunggu Persetujuan
+        $absensi_pending = Absen::where('approval_status', 'pending')
+            ->with('user')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('content.admin.rekap-absensi.index', compact('absensi', 'absensi_pending'));
     }
     public function export(Request $request)
     {
@@ -62,5 +68,19 @@ class RekapAbsensiController extends Controller
         $count = Absen::where('created_at', '<', $threshold)->delete();
 
         return redirect()->back()->with('success', "Berhasil membersihkan $count data absensi lama (lebih dari 30 hari).");
+    }
+
+    public function approve($id)
+    {
+        $absen = Absen::findOrFail($id);
+        $absen->update(['approval_status' => 'approved']);
+        return redirect()->back()->with('success', 'Pengajuan absensi berhasil disetujui.');
+    }
+
+    public function reject($id)
+    {
+        $absen = Absen::findOrFail($id);
+        $absen->update(['approval_status' => 'rejected']);
+        return redirect()->back()->with('success', 'Pengajuan absensi ditolak.');
     }
 }

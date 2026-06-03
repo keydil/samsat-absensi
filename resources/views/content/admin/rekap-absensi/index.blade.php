@@ -32,9 +32,28 @@
             </div>
         </div>
 
-        <div class="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+        <div x-data="{ activeTab: 'semua' }" class="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+            
+            {{-- Tabs Navigation --}}
+            <div class="border-b border-slate-200 bg-slate-50 flex overflow-x-auto">
+                <button @click="activeTab = 'semua'" 
+                    :class="activeTab === 'semua' ? 'border-b-2 border-blue-600 text-blue-600 font-semibold bg-white' : 'text-slate-500 font-medium hover:bg-slate-100 hover:text-slate-700'"
+                    class="px-6 py-4 text-sm transition-colors whitespace-nowrap focus:outline-none">
+                    Semua Data Absensi
+                </button>
+                <button @click="activeTab = 'pending'" 
+                    :class="activeTab === 'pending' ? 'border-b-2 border-blue-600 text-blue-600 font-semibold bg-white' : 'text-slate-500 font-medium hover:bg-slate-100 hover:text-slate-700'"
+                    class="px-6 py-4 text-sm transition-colors whitespace-nowrap focus:outline-none flex items-center gap-2">
+                    Menunggu Persetujuan
+                    @if(count($absensi_pending) > 0)
+                        <span class="inline-flex items-center justify-center h-5 w-5 rounded-full bg-rose-500 text-[10px] font-bold text-white">{{ count($absensi_pending) }}</span>
+                    @endif
+                </button>
+            </div>
 
-            <div class="border-b border-slate-100 bg-slate-50/50 px-6 py-4">
+            {{-- TAB 1: Semua Data --}}
+            <div x-show="activeTab === 'semua'">
+                <div class="border-b border-slate-100 bg-slate-50/50 px-6 py-4">
                 <form action="{{ route('admin.rekap-absensi') }}" method="GET" class="flex gap-4">
                     <input type="date" name="tanggal"
                         class="rounded-lg border-slate-200 text-sm focus:ring-blue-500 focus:border-blue-500"
@@ -168,6 +187,93 @@
             <div class="p-4 border-t border-slate-100">
                 {{ $absensi->links() }}
             </div>
+            </div> {{-- End TAB 1 --}}
+
+            {{-- TAB 2: Menunggu Persetujuan --}}
+            <div x-show="activeTab === 'pending'" x-cloak>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-slate-600">
+                        <thead class="bg-amber-50 text-xs uppercase font-bold text-amber-700 border-b border-amber-100">
+                            <tr>
+                                <th class="px-6 py-4">Pegawai</th>
+                                <th class="px-6 py-4">Tanggal Pengajuan</th>
+                                <th class="px-6 py-4">Status & Keterangan</th>
+                                <th class="px-6 py-4 text-center">Bukti Surat</th>
+                                <th class="px-6 py-4 text-center">Aksi (Persetujuan)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200">
+                            @forelse($absensi_pending as $pending)
+                                <tr class="hover:bg-slate-50 transition-colors">
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-3">
+                                            <div class="h-10 w-10 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold text-slate-600">
+                                                {{ substr($pending->user->name ?? 'U', 0, 1) }}
+                                            </div>
+                                            <div>
+                                                <p class="font-semibold text-slate-900">{{ $pending->user->name ?? 'User Terhapus' }}</p>
+                                                <p class="text-xs text-slate-400">{{ $pending->user->email ?? '-' }}</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 font-medium text-slate-700">
+                                        {{ \Carbon\Carbon::parse($pending->created_at)->translatedFormat('d F Y, H:i') }}
+                                        <p class="text-[10px] text-slate-400 uppercase mt-1">Untuk Absen: {{ \Carbon\Carbon::parse($pending->date)->translatedFormat('d F Y') }}</p>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        @if($pending->status === 'Izin')
+                                            <span class="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-blue-700 mb-1">Izin</span>
+                                        @elseif($pending->status === 'Sakit')
+                                            <span class="inline-flex items-center rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-rose-700 mb-1">Sakit</span>
+                                        @endif
+                                        <p class="text-xs text-slate-600 mt-1 italic">"{{ $pending->status_desc ?? 'Tanpa keterangan' }}"</p>
+                                    </td>
+                                    <td class="px-6 py-4 text-center">
+                                        @if($pending->bukti_surat)
+                                            <button onclick="showSurat('{{ $pending->bukti_surat }}')" class="inline-flex items-center gap-1 rounded bg-white px-3 py-1.5 text-xs font-semibold text-blue-600 shadow-sm ring-1 ring-inset ring-blue-300 hover:bg-blue-50 transition">
+                                                🖼️ Cek Surat
+                                            </button>
+                                        @else
+                                            <span class="text-xs text-slate-400">Tidak ada file</span>
+                                        @endif
+                                    </td>
+                                    <td class="px-6 py-4 text-center">
+                                        <div class="flex items-center justify-center gap-2">
+                                            {{-- Form Approve --}}
+                                            <form action="{{ route('admin.rekap-absensi.approve', $pending->id) }}" method="POST">
+                                                @csrf
+                                                <button type="submit" onclick="return confirm('Yakin ingin MENYETUJUI pengajuan ini?')" class="flex items-center justify-center h-8 w-8 rounded bg-emerald-100 text-emerald-600 hover:bg-emerald-200 transition" title="Setujui">
+                                                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                                                </button>
+                                            </form>
+
+                                            {{-- Form Reject --}}
+                                            <form action="{{ route('admin.rekap-absensi.reject', $pending->id) }}" method="POST">
+                                                @csrf
+                                                <button type="submit" onclick="return confirm('Yakin ingin MENOLAK pengajuan ini?')" class="flex items-center justify-center h-8 w-8 rounded bg-rose-100 text-rose-600 hover:bg-rose-200 transition" title="Tolak">
+                                                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="5" class="px-6 py-12 text-center text-slate-500">
+                                        <div class="flex flex-col items-center justify-center">
+                                            <svg class="h-12 w-12 text-slate-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            <p class="font-medium">Tidak ada pengajuan yang perlu persetujuan.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div> {{-- End TAB 2 --}}
+
         </div>
     </div>
 @endsection
@@ -224,6 +330,18 @@
                 if (result.isConfirmed) {
                     document.getElementById('form-clear-old').submit();
                 }
+            });
+        }
+
+        // Lihat Surat (SweetAlert Image)
+        function showSurat(url) {
+            Swal.fire({
+                title: 'Bukti Surat',
+                imageUrl: url,
+                imageAlt: 'Bukti Surat',
+                width: '80%',
+                showCloseButton: true,
+                showConfirmButton: false,
             });
         }
     </script>

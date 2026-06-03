@@ -289,6 +289,7 @@ class ScanQRController extends Controller
                 'lat_location_present' => null,
                 'lng_location_present' => null,
                 'bukti_surat' => $buktiSuratPath,
+                'approval_status' => 'pending',
             ]);
         } catch (\Throwable $e) {
             return response()->json([
