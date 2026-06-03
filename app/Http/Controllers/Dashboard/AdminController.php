@@ -16,20 +16,27 @@ class AdminController extends Controller
     {
         $totalPegawai = User::where('role', 'Karyawan')->count();
 
-        $hadirHariIni = Absen::whereDate('created_at', Carbon::today())
-            ->where(function($q) {
-                $q->where('status', 'Hadir')
-                  ->orWhere('status', 'in_present');
-            })
+        $today = Carbon::today();
+
+        $hadirHariIni = Absen::whereDate('date', $today)
+            ->where('status', 'Hadir')
             ->distinct('user_id')
             ->count('user_id');
 
-        $terlambat = 0; 
+        $terlambat = Absen::whereDate('date', $today)
+            ->where('status', 'Telat')
+            ->distinct('user_id')
+            ->count('user_id');
 
-        $tidakHadir = $totalPegawai - $hadirHariIni;
+        $izinSakit = Absen::whereDate('date', $today)
+            ->whereIn('status', ['Izin', 'Sakit'])
+            ->distinct('user_id')
+            ->count('user_id');
+
+        $tidakHadir = $totalPegawai - ($hadirHariIni + $terlambat + $izinSakit);
         if($tidakHadir < 0) $tidakHadir = 0; // Jaga-jaga error minus
 
-        $riwayatTerbaru = Absen::with(['user', 'shift'])
+        $riwayatTerbaru = Absen::with(['user'])
             ->latest()
             ->take(5)
             ->get();
@@ -38,6 +45,7 @@ class AdminController extends Controller
             'totalPegawai', 
             'hadirHariIni', 
             'terlambat', 
+            'izinSakit',
             'tidakHadir',
             'riwayatTerbaru'
         ));

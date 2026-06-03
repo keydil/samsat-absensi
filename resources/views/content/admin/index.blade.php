@@ -62,12 +62,12 @@
             <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all hover:shadow-md">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm font-medium text-slate-500">Belum Hadir</p>
-                        <p class="mt-1 text-3xl font-bold text-red-600">{{ $tidakHadir }}</p>
+                        <p class="text-sm font-medium text-slate-500">Izin & Sakit</p>
+                        <p class="mt-1 text-3xl font-bold text-blue-600">{{ $izinSakit }}</p>
                     </div>
-                    <div class="flex h-12 w-12 items-center justify-center rounded-full bg-red-50 text-red-600">
+                    <div class="flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 text-blue-600">
                         <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                         </svg>
                     </div>
                 </div>
@@ -112,9 +112,17 @@
                                         {{ \Carbon\Carbon::parse($log->created_at)->diffForHumans() }}
                                     </td>
                                     <td class="px-6 py-3 text-center">
-                                        <span class="inline-flex items-center rounded-full bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20">
-                                            Berhasil
-                                        </span>
+                                        @if($log->status === 'Hadir')
+                                            <span class="inline-flex items-center rounded-full bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20">Hadir</span>
+                                        @elseif($log->status === 'Telat')
+                                            <span class="inline-flex items-center rounded-full bg-orange-50 px-2 py-1 text-xs font-medium text-orange-700 ring-1 ring-inset ring-orange-600/20">Telat</span>
+                                        @elseif($log->status === 'Izin')
+                                            <span class="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-600/20">Izin</span>
+                                        @elseif($log->status === 'Sakit')
+                                            <span class="inline-flex items-center rounded-full bg-rose-50 px-2 py-1 text-xs font-medium text-rose-700 ring-1 ring-inset ring-rose-600/20">Sakit</span>
+                                        @else
+                                            <span class="inline-flex items-center rounded-full bg-slate-50 px-2 py-1 text-xs font-medium text-slate-700 ring-1 ring-inset ring-slate-600/20">{{ $log->status }}</span>
+                                        @endif
                                     </td>
                                 </tr>
                             @endforeach

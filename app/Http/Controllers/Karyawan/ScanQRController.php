@@ -136,13 +136,23 @@ class ScanQRController extends Controller
             }
         }
 
+        $timeNow = Carbon::now('Asia/Jakarta')->format('H:i');
+        
+        $finalStatus = $request->status;
+        if ($qr->present == 'in_present' && $finalStatus == 'Hadir') {
+            $batasTelat = env('TOLERANSI_TELAT_MASUK', '08:00');
+            if ($timeNow > $batasTelat) {
+                $finalStatus = 'Telat';
+            }
+        }
+
         try {
             Absen::create([
                 'user_id' => $user->id,
                 'qr_code_id' => $qr->id,
                 'date' => $qr->date,
-                'time' => Carbon::now('Asia/Jakarta')->format('H:i'),
-                'status' => $request->status,
+                'time' => $timeNow,
+                'status' => $finalStatus,
                 'status_desc' => 'Absensi via QR Code',
                 'present_desc_system' => 'Absen ' . ($qr->present == 'in_present' ? 'Masuk' : 'Keluar'),
                 'present_user_image' => $faceImagePath,

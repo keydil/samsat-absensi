@@ -75,9 +75,19 @@
                                 </td>
 
                                 <td class="px-6 py-4 text-center">
-                                    <span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20">
-                                        {{ $item->status }}
-                                    </span>
+                                    <div class="flex flex-col items-center gap-2">
+                                        @if($item->status === 'Hadir')
+                                            <span class="inline-flex items-center rounded-full bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20">Hadir</span>
+                                        @elseif($item->status === 'Telat')
+                                            <span class="inline-flex items-center rounded-full bg-orange-50 px-2 py-1 text-xs font-medium text-orange-700 ring-1 ring-inset ring-orange-600/20">Telat</span>
+                                        @elseif($item->status === 'Izin')
+                                            <span class="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-600/20">Izin</span>
+                                        @elseif($item->status === 'Sakit')
+                                            <span class="inline-flex items-center rounded-full bg-rose-50 px-2 py-1 text-xs font-medium text-rose-700 ring-1 ring-inset ring-rose-600/20">Sakit</span>
+                                        @else
+                                            <span class="inline-flex items-center rounded-full bg-slate-50 px-2 py-1 text-xs font-medium text-slate-700 ring-1 ring-inset ring-slate-600/20">{{ $item->status }}</span>
+                                        @endif
+                                    </div>
                                 </td>
                             </tr>
                         @empty

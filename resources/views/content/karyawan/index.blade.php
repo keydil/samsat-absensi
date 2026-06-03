@@ -3,6 +3,22 @@
 @section('content')
     <div class="space-y-8">
         
+        @if($riwayat->first() && \Carbon\Carbon::parse($riwayat->first()->created_at)->isToday() && $riwayat->first()->status === 'Telat')
+        <div class="rounded-xl border border-orange-200 bg-orange-50 p-4">
+            <div class="flex items-start gap-3">
+                <div class="flex-shrink-0 text-orange-600">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-sm font-semibold text-orange-800">Perhatian</h3>
+                    <p class="mt-1 text-sm text-orange-700">Anda berhasil absen hari ini, namun tercatat <strong>Telat</strong>. Harap perhatikan waktu kedatangan Anda besok.</p>
+                </div>
+            </div>
+        </div>
+        @endif
+        
         <div class="relative overflow-hidden rounded-2xl bg-slate-900 px-6 py-10 shadow-xl sm:px-12 sm:py-12">
             <div class="absolute -top-24 -left-20 h-64 w-64 rounded-full bg-blue-600/20 blur-3xl"></div>
             <div class="absolute top-1/2 -right-20 h-64 w-64 rounded-full bg-emerald-600/20 blur-3xl"></div>
@@ -106,6 +122,19 @@
                                         <p class="text-sm font-semibold leading-6 text-slate-900">
                                             {{ $log->present_desc_system ?? 'Absen' }}
                                         </p>
+                                        <div class="mt-1 flex items-center gap-2">
+                                            @if($log->status === 'Hadir')
+                                                <span class="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20">Hadir</span>
+                                            @elseif($log->status === 'Telat')
+                                                <span class="inline-flex items-center rounded-full bg-orange-50 px-2 py-0.5 text-[10px] font-medium text-orange-700 ring-1 ring-inset ring-orange-600/20">Telat</span>
+                                            @elseif($log->status === 'Izin')
+                                                <span class="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-medium text-blue-700 ring-1 ring-inset ring-blue-600/20">Izin</span>
+                                            @elseif($log->status === 'Sakit')
+                                                <span class="inline-flex items-center rounded-full bg-rose-50 px-2 py-0.5 text-[10px] font-medium text-rose-700 ring-1 ring-inset ring-rose-600/20">Sakit</span>
+                                            @else
+                                                <span class="inline-flex items-center rounded-full bg-slate-50 px-2 py-0.5 text-[10px] font-medium text-slate-700 ring-1 ring-inset ring-slate-600/20">{{ $log->status }}</span>
+                                            @endif
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
