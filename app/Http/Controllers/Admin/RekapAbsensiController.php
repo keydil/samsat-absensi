@@ -45,4 +45,22 @@ class RekapAbsensiController extends Controller
         // Download Excel
         return Excel::download(new RekapAbsensiExport($tanggal), $namaFile);
     }
+
+    public function destroy($user_id, $date)
+    {
+        Absen::where('user_id', $user_id)
+            ->whereDate('date', $date)
+            ->delete();
+
+        return redirect()->back()->with('success', 'Data absensi berhasil dihapus.');
+    }
+
+    public function clearOldData()
+    {
+        // Hapus data absensi yang usianya lebih dari 30 hari
+        $threshold = \Carbon\Carbon::now()->subDays(30);
+        $count = Absen::where('created_at', '<', $threshold)->delete();
+
+        return redirect()->back()->with('success', "Berhasil membersihkan $count data absensi lama (lebih dari 30 hari).");
+    }
 }

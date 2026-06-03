@@ -9,14 +9,27 @@
                 <p class="text-sm text-slate-500">Pantau kehadiran pegawai secara realtime.</p>
             </div>
 
-            <a href="{{ route('admin.rekap-absensi.export', request()->query()) }}"
-                class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-emerald-700 transition-all">
-                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                </svg>
-                Export Excel
-            </a>
+            <div class="flex items-center gap-3">
+                <form action="{{ route('admin.rekap-absensi.clear-old') }}" method="POST" id="form-clear-old">
+                    @csrf
+                    @method('DELETE')
+                    <button type="button" onclick="confirmClearOld()" class="inline-flex items-center gap-2 rounded-lg bg-rose-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-rose-700 transition-all">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        Bersihkan Data Lama
+                    </button>
+                </form>
+
+                <a href="{{ route('admin.rekap-absensi.export', request()->query()) }}"
+                    class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-emerald-700 transition-all">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    Export Excel
+                </a>
+            </div>
         </div>
 
         <div class="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
@@ -49,6 +62,7 @@
                             <th class="px-6 py-4">Jam Masuk</th>
                             <th class="px-6 py-4">Jam Pulang</th>
                             <th class="px-6 py-4 text-center">Status</th>
+                            <th class="px-6 py-4 text-center">Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-200">
@@ -121,6 +135,17 @@
                                         @endif
                                     </div>
                                 </td>
+                                <td class="px-6 py-4 text-center">
+                                    <form action="{{ route('admin.rekap-absensi.destroy', ['user_id' => $item->user_id, 'date' => $item->date]) }}" method="POST" class="form-delete" data-name="{{ $item->user->name ?? 'User' }}" data-date="{{ \Carbon\Carbon::parse($item->date)->translatedFormat('d F Y') }}">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="p-2 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors" title="Hapus Data">
+                                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                        </button>
+                                    </form>
+                                </td>
                             </tr>
                         @empty
                             <tr>
@@ -146,3 +171,60 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // Notifikasi Sukses dari Controller
+        @if(session('success'))
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil',
+                text: '{{ session("success") }}',
+                timer: 3000,
+                showConfirmButton: false
+            });
+        @endif
+
+        // Konfirmasi Hapus Satuan
+        document.querySelectorAll('.form-delete').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const name = this.getAttribute('data-name');
+                const date = this.getAttribute('data-date');
+                Swal.fire({
+                    title: 'Hapus Absensi?',
+                    html: `Anda yakin ingin menghapus absensi <b>${name}</b> pada tanggal <b>${date}</b>?<br><br>Seluruh data Masuk & Pulang di hari tersebut akan dihapus permanen.`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#94a3b8',
+                    confirmButtonText: 'Ya, Hapus!',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        this.submit();
+                    }
+                });
+            });
+        });
+
+        // Konfirmasi Bersihkan Data Lama
+        function confirmClearOld() {
+            Swal.fire({
+                title: 'Bersihkan Data Lama?',
+                html: `Aksi ini akan menghapus <b>semua riwayat absensi</b> yang usianya lebih dari 30 hari secara permanen.<br><br>Sangat disarankan untuk melakukan <b>Export Excel</b> terlebih dahulu sebagai *backup*.`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#94a3b8',
+                confirmButtonText: 'Ya, Bersihkan!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('form-clear-old').submit();
+                }
+            });
+        }
+    </script>
+@endpush

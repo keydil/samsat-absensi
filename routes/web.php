@@ -72,6 +72,8 @@ Route::middleware(['RoleUser:Admin'])->group(function () {
     // Route Rekap Absensi
     Route::get('/dashboard/admin/rekap-absensi', [RekapAbsensiController::class, 'index'])->name('admin.rekap-absensi');
     Route::get('/dashboard/admin/rekap-absensi/export', [RekapAbsensiController::class, 'export'])->name('admin.rekap-absensi.export');
+    Route::delete('/dashboard/admin/rekap-absensi/clear-old', [RekapAbsensiController::class, 'clearOldData'])->name('admin.rekap-absensi.clear-old');
+    Route::delete('/dashboard/admin/rekap-absensi/{user_id}/{date}', [RekapAbsensiController::class, 'destroy'])->name('admin.rekap-absensi.destroy');
 
     // Route Pengaturan (Settings)
     Route::get('/dashboard/admin/settings', [\App\Http\Controllers\Admin\SettingController::class, 'index'])->name('admin.settings');
