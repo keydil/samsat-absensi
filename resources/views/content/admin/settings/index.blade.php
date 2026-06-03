@@ -155,7 +155,22 @@
                         alert("Lokasi berhasil diperbarui sesuai GPS Anda saat ini!");
                     }, 
                     function(error) {
-                        alert("Gagal mendapatkan lokasi. Pastikan izin GPS diaktifkan di browser Anda.");
+                        let errorMsg = "Gagal mendapatkan lokasi. ";
+                        switch(error.code) {
+                            case error.PERMISSION_DENIED:
+                                errorMsg += "Anda menolak permintaan Izin Lokasi di browser.";
+                                break;
+                            case error.POSITION_UNAVAILABLE:
+                                errorMsg += "Informasi lokasi tidak tersedia.";
+                                break;
+                            case error.TIMEOUT:
+                                errorMsg += "Waktu permintaan lokasi habis (timeout).";
+                                break;
+                            default:
+                                errorMsg += "Terjadi kesalahan tidak dikenal: " + error.message;
+                                break;
+                        }
+                        alert(errorMsg);
                     },
                     { enableHighAccuracy: true }
                 );

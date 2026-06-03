@@ -27,6 +27,7 @@
             scrollbar-width: none;
         }
     </style>
+    @stack('styles')
 </head>
 
 <body class="flex h-screen bg-slate-50 text-slate-800 antialiased overflow-hidden" x-data="{ sidebarOpen: false }">
@@ -178,6 +179,7 @@
         </main>
     </div>
 
+    @stack('scripts')
 </body>
 
 </html>
