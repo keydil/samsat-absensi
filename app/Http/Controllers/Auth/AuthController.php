@@ -19,22 +19,24 @@ class AuthController extends Controller
         ]);
 
         $datalogin = $request->only('text', 'password');
+        $user = \App\Models\User::where('username', $datalogin['text'])
+                    ->orWhere('code_name', $datalogin['text'])
+                    ->first();
 
-        // Coba login dengan username
-        if (Auth::attempt(['username' => $datalogin['text'], 'password' => $datalogin['password']])) {
-            return $this->redirectUser();
+        if (!$user) {
+            return redirect()->back()->withErrors([
+                'loginError' => 'Username atau Kode User tidak terdaftar.'
+            ])->withInput($request->except('password'));
         }
 
-        // Coba login dengan code_name
-        if (Auth::attempt(['code_name' => $datalogin['text'], 'password' => $datalogin['password']])) {
-            return $this->redirectUser();
+        if (!\Illuminate\Support\Facades\Hash::check($datalogin['password'], $user->password)) {
+            return redirect()->back()->withErrors([
+                'loginError' => 'Password yang Anda masukkan salah.'
+            ])->withInput($request->except('password'));
         }
 
-        return redirect()->back()->withErrors([
-            'loginError' => 'Username, Kode User, atau Password yang dimasukkan tidak sesuai'
-        ]);
-    }
-    
+        Auth::login($user);
+        return $this->redirectUser();
 
     protected function redirectUser()
     {
