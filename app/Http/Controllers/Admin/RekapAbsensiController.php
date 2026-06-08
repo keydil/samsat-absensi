@@ -24,6 +24,7 @@ class RekapAbsensiController extends Controller
                 MAX(approval_status) as approval_status,
                 MAX(status_desc) as status_desc,
                 MAX(bukti_surat) as bukti_surat,
+                MAX(present_user_image) as present_user_image,
                 MIN(created_at) as created_at
             ')
             ->with('user')
