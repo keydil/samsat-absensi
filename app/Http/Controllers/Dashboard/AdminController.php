@@ -38,10 +38,17 @@ class AdminController extends Controller
             ->take(5)
             ->get();
 
-        // 2. MENGHITUNG TOTAL HARI KERJA BULAN INI (Senin-Jumat)
-        $totalWorkingDays = $startOfMonth->diffInDaysFiltered(function (Carbon $date) use ($today) {
-            return $date->isWeekday() && $date->lte($today);
-        });
+        // 2. MENGHITUNG TOTAL HARI KERJA BULAN INI (Mode Testing Santai)
+        // Hitung hari kerja hanya jika ada aktivitas absensi di hari tersebut (mengabaikan Sabtu/Minggu)
+        $workingDates = Absen::whereBetween('date', [$startOfMonth, $today])
+            ->select('date')
+            ->distinct()
+            ->pluck('date')
+            ->filter(function($date) {
+                return Carbon::parse($date)->isWeekday();
+            });
+            
+        $totalWorkingDays = $workingDates->count();
         if ($totalWorkingDays == 0) $totalWorkingDays = 1; // Prevent division by zero
 
         // Ambil semua absen bulan ini
