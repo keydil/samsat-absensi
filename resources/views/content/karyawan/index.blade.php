@@ -118,22 +118,99 @@
                 <a href="{{ route('user.history') }}" class="text-sm font-semibold text-blue-600 hover:text-blue-800">Lihat Semua</a>
             </div>
             
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm text-slate-600">
+                    <thead class="bg-white text-xs uppercase font-bold text-slate-400 border-b border-slate-100">
+                        <tr>
+                            <th class="px-6 py-3">Tanggal</th>
+                            <th class="px-6 py-3">Jam Masuk</th>
+                            <th class="px-6 py-3">Jam Pulang</th>
+                            <th class="px-6 py-3">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 bg-white">
+                        @forelse($riwayat as $absen)
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="px-6 py-4 font-medium text-slate-900">
+                                    {{ \Carbon\Carbon::parse($absen->date)->translatedFormat('d F Y') }}
+                                </td>
+                                <td class="px-6 py-4 text-slate-700">
+                                    {{ $absen->jam_masuk ? \Carbon\Carbon::parse($absen->jam_masuk)->format('H:i') : '--:--' }}
+                                </td>
+                                <td class="px-6 py-4 text-slate-700">
+                                    {{ $absen->jam_pulang ? \Carbon\Carbon::parse($absen->jam_pulang)->format('H:i') : '--:--' }}
+                                </td>
+                                <td class="px-6 py-4">
+                                    @if($absen->status == 'Hadir')
+                                        <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-600/20">
+                                            <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                                            Hadir
+                                        </span>
+                                    @elseif($absen->status == 'Telat')
+                                        <span class="inline-flex items-center gap-1.5 rounded-full bg-yellow-50 px-2.5 py-1 text-xs font-semibold text-yellow-700 ring-1 ring-inset ring-yellow-600/20">
+                                            <span class="h-1.5 w-1.5 rounded-full bg-yellow-500"></span>
+                                            Terlambat
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700 ring-1 ring-inset ring-blue-600/20">
+                                            <span class="h-1.5 w-1.5 rounded-full bg-blue-500"></span>
+                                            {{ $absen->status }}
+                                        </span>
+                                    @endif
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="4" class="px-6 py-8 text-center text-slate-500">
+                                    <div class="flex flex-col items-center justify-center">
+                                        <svg class="h-10 w-10 text-slate-300 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                        </svg>
+                                        <p>Belum ada riwayat absensi.</p>
                                     </div>
-                                </div>
-                                <div class="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
-                                    <p class="text-sm leading-6 text-slate-900 font-mono">
-                                        <span class="text-emerald-600 font-medium">In: {{ $log->jam_masuk ? \Carbon\Carbon::parse($log->jam_masuk)->format('H:i') : '-' }}</span>
-                                    </p>
-                                    <p class="mt-1 text-xs leading-5 text-slate-500 font-mono">
-                                        <span class="text-blue-600 font-medium">Out: {{ $log->jam_pulang ? \Carbon\Carbon::parse($log->jam_pulang)->format('H:i') : '-' }}</span>
-                                    </p>
-                                </div>
-                            </li>
-                        @endforeach
-                    </ul>
-                @endif
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
         </div>
-
     </div>
+
+    @if(isset($userHadir))
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('kinerjaChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Hadir', 'Telat', 'Bolos'],
+                    datasets: [{
+                        label: 'Total Hari',
+                        data: [{{ $userHadir }}, {{ $userTelat }}, {{ $userBolos }}],
+                        backgroundColor: [
+                            'rgba(16, 185, 129, 0.8)', // emerald
+                            'rgba(234, 179, 8, 0.8)',  // yellow
+                            'rgba(244, 63, 94, 0.8)'   // rose
+                        ],
+                        borderRadius: 4,
+                        barPercentage: 0.5
+                    }]
+                },
+                options: {
+                    indexAxis: 'y', // horizontal bar chart
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: { beginAtZero: true, ticks: { stepSize: 1 } },
+                        y: { grid: { display: false } }
+                    }
+                }
+            });
+        });
+    </script>
+    @endif
 @endsection
