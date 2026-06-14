@@ -86,4 +86,19 @@ class RekapAbsensiController extends Controller
         $absen->update(['approval_status' => 'rejected']);
         return redirect()->back()->with('success', 'Pengajuan absensi ditolak.');
     }
+
+    public function exportExcel(Request $request)
+    {
+        $tanggalFilter = $request->input('tanggal');
+        
+        $fileName = 'Rekap_Absensi';
+        if ($tanggalFilter) {
+            $fileName .= '_' . \Carbon\Carbon::parse($tanggalFilter)->format('d_M_Y');
+        } else {
+            $fileName .= '_Keseluruhan';
+        }
+        $fileName .= '.xlsx';
+
+        return Excel::download(new \App\Exports\AbsensiExport($tanggalFilter), $fileName);
+    }
 }
