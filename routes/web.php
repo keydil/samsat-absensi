@@ -9,6 +9,13 @@ use App\Http\Controllers\Karyawan\ScanQRController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\RekapAbsensiController;
+use Illuminate\Support\Facades\Artisan;
+
+// RUTE RAHASIA UNTUK SUNTIK DATA DI RAILWAY
+Route::get('/rahasia/suntik-absen', function () {
+    Artisan::call('db:seed', ['--class' => 'DemoAbsenSeeder']);
+    return 'Data absen berhasil disuntik ke database Railway! Silakan refresh dashboard Admin lu.';
+});
 
 Route::get('/', fn() => view('welcome'))->name('beranda');
 Route::middleware('web')->group(function () {
