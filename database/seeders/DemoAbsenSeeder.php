@@ -33,8 +33,7 @@ class DemoAbsenSeeder extends Seeder
             $endDate = $startOfMonth; // jaga-jaga kalau tanggal 1
         }
 
-        // Hapus absen lama bulan ini biar nggak dobel/bentrok pas seeding ulang
-        Absen::whereBetween('date', [$startOfMonth, $today])->delete();
+        // HAPUS BARIS INI: Absen::whereBetween('date', [$startOfMonth, $today])->delete();
 
         $this->command->info('Mulai menyuntikkan data absen dari ' . $startOfMonth->format('Y-m-d') . ' sampai ' . $endDate->format('Y-m-d'));
 
@@ -47,6 +46,16 @@ class DemoAbsenSeeder extends Seeder
             while ($currentDate->lte($endDate)) {
                 // Skip Sabtu & Minggu
                 if ($currentDate->isWeekend()) {
+                    $currentDate->addDay();
+                    continue;
+                }
+
+                // JANGAN TIMPA DATA YANG UDAH ADA (Testing Manual dari User)
+                $existingAbsen = Absen::where('user_id', $user->id)
+                                      ->whereDate('date', $currentDate->format('Y-m-d'))
+                                      ->exists();
+                
+                if ($existingAbsen) {
                     $currentDate->addDay();
                     continue;
                 }
