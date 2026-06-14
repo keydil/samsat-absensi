@@ -13,8 +13,12 @@ use Illuminate\Support\Facades\Artisan;
 
 // RUTE RAHASIA UNTUK SUNTIK DATA DI RAILWAY
 Route::get('/rahasia/suntik-absen', function () {
-    Artisan::call('db:seed', ['--class' => 'DemoAbsenSeeder']);
-    return 'Data absen berhasil disuntik ke database Railway! Silakan refresh dashboard Admin lu.';
+    try {
+        Artisan::call('db:seed', ['--class' => 'DemoAbsenSeeder']);
+        return '<h2>BERHASIL!</h2><pre style="background:#222;color:#0f0;padding:20px;">' . Artisan::output() . '</pre>';
+    } catch (\Exception $e) {
+        return '<h2 style="color:red;">GAGAL! ADA ERROR:</h2><pre style="background:#ffebee;color:#c62828;padding:20px;">' . $e->getMessage() . '</pre>';
+    }
 });
 
 Route::get('/', fn() => view('welcome'))->name('beranda');
