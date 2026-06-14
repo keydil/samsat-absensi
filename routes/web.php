@@ -21,6 +21,58 @@ Route::get('/rahasia/suntik-absen', function () {
     }
 });
 
+// RUTE RAHASIA UNTUK MENGEMBALIKAN FOTO MUKA KLIEN YANG TERHAPUS
+Route::get('/rahasia/restore-klien', function () {
+    $ilham = \App\Models\User::where('name', 'LIKE', '%ilham%')->orWhere('email', 'LIKE', '%karyawan123%')->first();
+    $yudi = \App\Models\User::where('name', 'LIKE', '%yudi%')->first();
+
+    if ($ilham) {
+        // 08 June 2026: "ilham khoerun" - Jam Masuk 10:49 - Status Hadir (FOTO MUKA)
+        \App\Models\Absen::updateOrCreate(
+            ['user_id' => $ilham->id, 'date' => '2026-06-08'],
+            [
+                'time' => '10:49:00',
+                'status' => 'Hadir',
+                'present_desc_system' => 'Memulai Scan QrCode Masuk pada : 10:49:00',
+                'present_user_image' => 'https://res.cloudinary.com/drsjumtal/image/upload/v1780890946/absensi-faces/face_39_1780890945.jpg',
+                'approval_status' => 'approved',
+                'created_at' => '2026-06-08 10:49:00',
+                'updated_at' => '2026-06-08 10:49:00',
+            ]
+        );
+
+        // 03 June 2026: "ilham khoerun" - Izin (Disetujui) - "sakit"
+        \App\Models\Absen::updateOrCreate(
+            ['user_id' => $ilham->id, 'date' => '2026-06-03'],
+            [
+                'status' => 'Izin',
+                'status_desc' => 'sakit',
+                'bukti_surat' => 'https://res.cloudinary.com/drsjumtal/image/upload/v1780466710/absensi-surat/surat_2_1780466709.png',
+                'approval_status' => 'approved',
+                'created_at' => '2026-06-03 08:00:00',
+                'updated_at' => '2026-06-03 08:00:00',
+            ]
+        );
+    }
+
+    if ($yudi) {
+        // 04 June 2026: "yudi hermawan" - Sakit (Ditolak) - "demam tinggi"
+        \App\Models\Absen::updateOrCreate(
+            ['user_id' => $yudi->id, 'date' => '2026-06-04'],
+            [
+                'status' => 'Sakit',
+                'status_desc' => 'demam tinggi',
+                'bukti_surat' => 'https://res.cloudinary.com/drsjumtal/image/upload/v1780536958/absensi-surat/surat_36_1780536957.png',
+                'approval_status' => 'rejected',
+                'created_at' => '2026-06-04 08:00:00',
+                'updated_at' => '2026-06-04 08:00:00',
+            ]
+        );
+    }
+
+    return '<h2 style="color:green; text-align:center; margin-top:50px;">DATA MUKA KLIEN DAN SURAT IZIN BERHASIL DISELAMATKAN! 🎉<br>Silakan cek Rekap Absensi lu!</h2>';
+});
+
 Route::get('/', fn() => view('welcome'))->name('beranda');
 Route::middleware('web')->group(function () {
     // Redirect user admin
