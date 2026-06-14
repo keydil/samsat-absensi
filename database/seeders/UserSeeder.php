@@ -14,7 +14,7 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        User::updateOrCreate(
+        User::firstOrCreate(
             ['username' => 'admin123'],
             [
                 'code_name' => 'ADM0432204',
@@ -25,11 +25,11 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('password123'),
             ]
         );
-        User::updateOrCreate(
+        User::firstOrCreate(
             ['username' => 'karyawan123'],
             [
                 'code_name' => 'EMP2245810',
-                'name' => 'User Karyawan',
+                'name' => 'ilham khoerun', // GW GANTI JADI ILHAM SEKALIAN!
                 'email' => 'karyawan123@gmail.com',
                 'phone' => '6281234567890',
                 'role' => 'Karyawan',
