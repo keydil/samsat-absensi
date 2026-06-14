@@ -1,5 +1,10 @@
 @extends('layouts.app')
 
+@push('styles')
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+@endpush
+
 @section('content')
     <div class="space-y-6">
         
@@ -15,6 +20,7 @@
             </div>
         </div>
 
+        {{-- 1. KARTU STATISTIK HARI INI --}}
         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             
             <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all hover:shadow-md">
@@ -63,13 +69,94 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm font-medium text-slate-500">Izin & Sakit</p>
-                        <p class="mt-1 text-3xl font-bold text-blue-600">{{ $izinSakit }}</p>
+                        <p class="mt-1 text-3xl font-bold text-slate-600">{{ $izinSakit }}</p>
                     </div>
-                    <div class="flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+                    <div class="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-600">
                         <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                         </svg>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- 2. GRAFIK (CHART.JS) --}}
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {{-- Grafik Bulanan (Donut) --}}
+            <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm col-span-1">
+                <h3 class="text-lg font-bold text-slate-800 mb-4">Rasio Kehadiran Bulan Ini</h3>
+                <div class="relative h-64 w-full flex justify-center items-center">
+                    <canvas id="monthlyChart"></canvas>
+                </div>
+            </div>
+
+            {{-- Grafik Mingguan (Bar) --}}
+            <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm lg:col-span-2">
+                <h3 class="text-lg font-bold text-slate-800 mb-4">Tren Kehadiran (7 Hari Terakhir)</h3>
+                <div class="relative h-64 w-full">
+                    <canvas id="weeklyChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        {{-- 3. LEADERBOARD / KEDISIPLINAN --}}
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            
+            {{-- Top 3 Rajin --}}
+            <div class="rounded-2xl border border-emerald-200 bg-white shadow-sm overflow-hidden">
+                <div class="bg-emerald-50 px-6 py-4 border-b border-emerald-100 flex items-center gap-3">
+                    <span class="text-2xl">🏆</span>
+                    <h3 class="text-lg font-bold text-emerald-800">Top 3 Paling Disiplin</h3>
+                </div>
+                <div class="p-0">
+                    @forelse($topPegawai as $index => $pegawai)
+                        <div class="flex items-center justify-between p-4 border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
+                            <div class="flex items-center gap-4">
+                                <div class="flex h-10 w-10 items-center justify-center rounded-full font-bold {{ $index == 0 ? 'bg-yellow-100 text-yellow-600' : ($index == 1 ? 'bg-slate-200 text-slate-600' : 'bg-orange-100 text-orange-600') }}">
+                                    #{{ $index + 1 }}
+                                </div>
+                                <div>
+                                    <p class="font-bold text-slate-800">{{ $pegawai['user']->name }}</p>
+                                    <p class="text-xs text-slate-500">Hadir: {{ $pegawai['hadir'] }} | Telat: {{ $pegawai['telat'] }}</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-xl font-black text-emerald-600">{{ $pegawai['score'] }}</p>
+                                <p class="text-[10px] uppercase font-bold tracking-wider text-slate-400">Poin</p>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="p-6 text-center text-slate-500">Belum ada data bulan ini.</div>
+                    @endforelse
+                </div>
+            </div>
+
+            {{-- Bottom 3 (Sering Telat/Bolos) --}}
+            <div class="rounded-2xl border border-rose-200 bg-white shadow-sm overflow-hidden">
+                <div class="bg-rose-50 px-6 py-4 border-b border-rose-100 flex items-center gap-3">
+                    <span class="text-2xl">⚠️</span>
+                    <h3 class="text-lg font-bold text-rose-800">Perlu Perhatian (Terbawah)</h3>
+                </div>
+                <div class="p-0">
+                    @forelse($bottomPegawai as $index => $pegawai)
+                        <div class="flex items-center justify-between p-4 border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
+                            <div class="flex items-center gap-4">
+                                <div class="flex h-10 w-10 items-center justify-center rounded-full bg-rose-100 font-bold text-rose-600">
+                                    #{{ count($topPegawai) + $index + 1 }}
+                                </div>
+                                <div>
+                                    <p class="font-bold text-slate-800">{{ $pegawai['user']->name }}</p>
+                                    <p class="text-xs text-slate-500">Bolos: {{ $pegawai['bolos'] }} | Telat: {{ $pegawai['telat'] }}</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-xl font-black {{ $pegawai['score'] < 0 ? 'text-rose-600' : 'text-slate-600' }}">{{ $pegawai['score'] }}</p>
+                                <p class="text-[10px] uppercase font-bold tracking-wider text-slate-400">Poin</p>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="p-6 text-center text-slate-500">Belum ada data bulan ini.</div>
+                    @endforelse
                 </div>
             </div>
         </div>
@@ -100,37 +187,44 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
-                            @foreach($riwayatTerbaru as $log)
-                                <tr class="hover:bg-slate-50">
-                                    <td class="px-6 py-3 font-medium text-slate-900">
-                                        {{ $log->user->name ?? 'User Terhapus' }}
+                            @foreach($riwayatTerbaru as $absen)
+                                <tr class="hover:bg-slate-50/50 transition-colors">
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-3">
+                                            <div class="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-blue-700 font-bold text-xs uppercase">
+                                                {{ substr($absen->user->name ?? '?', 0, 2) }}
+                                            </div>
+                                            <div>
+                                                <p class="font-medium text-slate-900">{{ $absen->user->name ?? 'User Dihapus' }}</p>
+                                                <p class="text-xs text-slate-500">{{ \Carbon\Carbon::parse($absen->date)->translatedFormat('d M Y') }}</p>
+                                            </div>
+                                        </div>
                                     </td>
-                                    <td class="px-6 py-3 font-mono text-xs">
-                                        @if($log->jam_masuk)
-                                            <span class="text-emerald-600 font-bold">{{ \Carbon\Carbon::parse($log->jam_masuk)->format('H:i') }}</span>
-                                        @else
-                                            <span class="text-slate-300">-</span>
-                                        @endif
+                                    <td class="px-6 py-4 font-medium text-slate-700">
+                                        {{ $absen->jam_masuk ? \Carbon\Carbon::parse($absen->jam_masuk)->format('H:i') : '--:--' }}
                                     </td>
-                                    <td class="px-6 py-3 font-mono text-xs">
-                                        @if($log->jam_pulang)
-                                            <span class="text-blue-600 font-bold">{{ \Carbon\Carbon::parse($log->jam_pulang)->format('H:i') }}</span>
-                                        @else
-                                            <span class="text-slate-300">-</span>
-                                        @endif
+                                    <td class="px-6 py-4 font-medium text-slate-700">
+                                        {{ $absen->jam_pulang ? \Carbon\Carbon::parse($absen->jam_pulang)->format('H:i') : '--:--' }}
                                     </td>
-                                    <td class="px-6 py-3 text-center">
-                                        @if($log->status === 'Hadir')
-                                            <span class="inline-flex items-center rounded-full bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20">Hadir</span>
-                                        @elseif($log->status === 'Telat')
-                                            <span class="inline-flex items-center rounded-full bg-orange-50 px-2 py-1 text-xs font-medium text-orange-700 ring-1 ring-inset ring-orange-600/20">Telat</span>
-                                        @elseif($log->status === 'Izin')
-                                            <span class="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-600/20">Izin</span>
-                                        @elseif($log->status === 'Sakit')
-                                            <span class="inline-flex items-center rounded-full bg-rose-50 px-2 py-1 text-xs font-medium text-rose-700 ring-1 ring-inset ring-rose-600/20">Sakit</span>
-                                        @else
-                                            <span class="inline-flex items-center rounded-full bg-slate-50 px-2 py-1 text-xs font-medium text-slate-700 ring-1 ring-inset ring-slate-600/20">{{ $log->status }}</span>
-                                        @endif
+                                    <td class="px-6 py-4">
+                                        <div class="flex justify-center">
+                                            @if($absen->status == 'Hadir')
+                                                <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 border border-emerald-200">
+                                                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                                                    Hadir
+                                                </span>
+                                            @elseif($absen->status == 'Telat')
+                                                <span class="inline-flex items-center gap-1.5 rounded-full bg-yellow-50 px-2.5 py-1 text-xs font-semibold text-yellow-700 border border-yellow-200">
+                                                    <span class="h-1.5 w-1.5 rounded-full bg-yellow-500"></span>
+                                                    Terlambat
+                                                </span>
+                                            @else
+                                                <span class="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700 border border-blue-200">
+                                                    <span class="h-1.5 w-1.5 rounded-full bg-blue-500"></span>
+                                                    {{ $absen->status }}
+                                                </span>
+                                            @endif
+                                        </div>
                                     </td>
                                 </tr>
                             @endforeach
@@ -139,6 +233,78 @@
                 @endif
             </div>
         </div>
-
     </div>
+
+    {{-- Script inisialisasi Chart.js --}}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 1. Doughnut Chart (Bulan Ini)
+            const ctxMonthly = document.getElementById('monthlyChart').getContext('2d');
+            new Chart(ctxMonthly, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Hadir Tepat Waktu', 'Terlambat', 'Izin/Sakit', 'Tidak Hadir (Bolos)'],
+                    datasets: [{
+                        data: {{ json_encode($monthlyChartData) }},
+                        backgroundColor: [
+                            '#10b981', // emerald-500 (Hadir)
+                            '#eab308', // yellow-500 (Telat)
+                            '#64748b', // slate-500 (Izin/Sakit)
+                            '#ef4444'  // red-500 (Bolos)
+                        ],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } }
+                    },
+                    cutout: '70%'
+                }
+            });
+
+            // 2. Bar Chart (7 Hari Terakhir)
+            const ctxWeekly = document.getElementById('weeklyChart').getContext('2d');
+            new Chart(ctxWeekly, {
+                type: 'bar',
+                data: {
+                    labels: {!! json_encode($weeklyChartLabels) !!},
+                    datasets: [
+                        {
+                            label: 'Hadir',
+                            data: {{ json_encode($weeklyHadirData) }},
+                            backgroundColor: '#10b981', // emerald-500
+                            borderRadius: 4
+                        },
+                        {
+                            label: 'Telat',
+                            data: {{ json_encode($weeklyTelatData) }},
+                            backgroundColor: '#eab308', // yellow-500
+                            borderRadius: 4
+                        },
+                        {
+                            label: 'Bolos',
+                            data: {{ json_encode($weeklyBolosData) }},
+                            backgroundColor: '#ef4444', // red-500
+                            borderRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { stacked: true, grid: { display: false } },
+                        y: { stacked: true, beginAtZero: true, ticks: { precision: 0 } }
+                    },
+                    plugins: {
+                        legend: { position: 'top', labels: { boxWidth: 12 } }
+                    }
+                }
+            });
+        });
+    </script>
 @endsection
