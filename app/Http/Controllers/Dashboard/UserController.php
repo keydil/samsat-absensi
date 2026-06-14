@@ -13,17 +13,47 @@ class UserController extends Controller
     public function index()
     {
         $user = Auth::user();
+        $today = Carbon::today();
+        $startOfMonth = $today->copy()->startOfMonth();
 
-        $totalHadir = Absen::where('user_id', $user->id)
-            ->whereMonth('created_at', Carbon::now()->month)
-            ->whereYear('created_at', Carbon::now()->year)
-            ->where(function($q) {
-                $q->where('status', 'Hadir')
-                  ->orWhere('status', 'in_present');
-            })
-            ->distinct('date')
-            ->count('date');
+        // 1. MENGHITUNG TOTAL HARI KERJA BULAN INI (Senin-Jumat)
+        $totalWorkingDays = $startOfMonth->diffInDaysFiltered(function (Carbon $date) use ($today) {
+            return $date->isWeekday() && $date->lte($today);
+        });
+        if ($totalWorkingDays == 0) $totalWorkingDays = 1;
 
+        // 2. MENGAMBIL DATA ABSEN BULAN INI
+        $absenBulanIni = Absen::where('user_id', $user->id)
+            ->whereBetween('date', [$startOfMonth, $today])
+            ->get()
+            ->groupBy('date');
+
+        $userHadir = 0;
+        $userTelat = 0;
+        $userIzinSakit = 0;
+
+        foreach ($absenBulanIni as $date => $records) {
+            $status = $records->first()->status;
+            if ($status == 'Hadir') $userHadir++;
+            elseif ($status == 'Telat') $userTelat++;
+            elseif (in_array($status, ['Izin', 'Sakit'])) $userIzinSakit++;
+        }
+
+        $userBolos = max(0, $totalWorkingDays - ($userHadir + $userTelat + $userIzinSakit));
+        
+        // 3. LOGIKA SKOR KEDISIPLINAN
+        $score = ($userHadir * 10) + ($userTelat * -5) + ($userBolos * -10);
+
+        // 4. LOGIKA WARNING OTOMATIS
+        $warnings = [];
+        if ($userTelat > 5) {
+            $warnings[] = "Anda telah Terlambat sebanyak {$userTelat} kali bulan ini. Harap perbaiki kedisiplinan Anda.";
+        }
+        if ($userBolos > 3) {
+            $warnings[] = "Anda tercatat Tidak Hadir (Bolos) sebanyak {$userBolos} kali bulan ini. SP (Surat Peringatan) dapat dikeluarkan.";
+        }
+
+        $totalHadir = $userHadir + $userTelat; // Untuk total absensi card lama
   
         $riwayat = Absen::selectRaw('
                 date,
@@ -40,7 +70,9 @@ class UserController extends Controller
             ->take(5)
             ->get();
 
-        return view('content.karyawan.index', compact('totalHadir', 'riwayat'));
+        return view('content.karyawan.index', compact(
+            'totalHadir', 'riwayat', 'userHadir', 'userTelat', 'userIzinSakit', 'userBolos', 'score', 'warnings'
+        ));
     }
     public function history(Request $request)
     {

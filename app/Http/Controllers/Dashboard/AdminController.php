@@ -86,8 +86,10 @@ class AdminController extends Controller
             $weeklyBolosData[] = max(0, $totalPegawai - ($dayHadir + $dayTelat + $dayIzinSakit));
         }
 
-        // 5. MENGHITUNG SKOR KEDISIPLINAN & RANKING
+        // 5. MENGHITUNG SKOR KEDISIPLINAN, RANKING & WARNINGS
         $pegawaiRankings = [];
+        $usersWithWarnings = []; // <-- TAMBAHAN BARU
+        
         foreach ($pegawai as $user) {
             $userAbsens = $absenBulanIni->where('user_id', $user->id)->groupBy('date');
             
@@ -104,6 +106,18 @@ class AdminController extends Controller
 
             $userBolos = max(0, $totalWorkingDays - ($userHadir + $userTelat + $userIzinSakit));
             
+            // LOGIKA WARNING
+            $userWarnings = [];
+            if ($userTelat > 5) $userWarnings[] = "Sering Terlambat ($userTelat kali)";
+            if ($userBolos > 3) $userWarnings[] = "Sering Bolos ($userBolos kali)";
+            
+            if (count($userWarnings) > 0) {
+                $usersWithWarnings[] = [
+                    'user' => $user,
+                    'issues' => $userWarnings
+                ];
+            }
+
             // LOGIKA SKOR: Hadir(+10), Telat(-5), Bolos(-10)
             $score = ($userHadir * 10) + ($userTelat * -5) + ($userBolos * -10);
 
@@ -121,22 +135,25 @@ class AdminController extends Controller
             return $b['score'] <=> $a['score'];
         });
 
-        // Split Top 3 and Bottom 3 (if enough users)
+        // Split Top 3 and Bottom 3
         $topPegawai = array_slice($pegawaiRankings, 0, 3);
-        $bottomPegawai = array_slice($pegawaiRankings, -3, 3);
         
-        // Reverse bottom so the absolute lowest is first
-        $bottomPegawai = array_reverse($bottomPegawai);
-
-        // Jika user kurang dari 6, hindari duplikasi di Top dan Bottom
-        if (count($pegawaiRankings) <= 3) {
-            $bottomPegawai = []; 
+        $bottomPegawai = [];
+        if (count($pegawaiRankings) > 3) {
+            // Ambil sisa user setelah dipotong Top 3
+            $sisaPegawai = array_slice($pegawaiRankings, 3);
+            
+            // Ambil maksimal 3 user dari yang paling bawah
+            $bottomPegawai = array_slice($sisaPegawai, -3, 3);
+            
+            // Balik urutannya biar yang paling minus di nomor 1
+            $bottomPegawai = array_reverse($bottomPegawai);
         }
 
         return view('content.admin.index', compact(
             'totalPegawai', 'hadirHariIni', 'terlambat', 'izinSakit', 'tidakHadir', 'riwayatTerbaru',
             'monthlyChartData', 'weeklyChartLabels', 'weeklyHadirData', 'weeklyTelatData', 'weeklyBolosData',
-            'topPegawai', 'bottomPegawai'
+            'topPegawai', 'bottomPegawai', 'usersWithWarnings'
         ));
     }
 
