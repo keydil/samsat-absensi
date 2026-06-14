@@ -39,9 +39,9 @@
 
             <div class="lg:col-span-2 space-y-6">
                 <div class="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden relative">
-                    <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
-                        <h3 class="font-semibold text-slate-800 flex items-center gap-2">
-                            <svg class="w-5 h-5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div class="p-4 border-b border-slate-100 bg-white flex justify-between items-center rounded-t-xl">
+                        <h3 class="font-bold text-slate-800 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -51,23 +51,113 @@
                         </h3>
                         <div class="flex gap-2 flex-wrap">
                             <button id="start-camera"
-                                class="px-3 py-1 text-xs font-bold bg-blue-600 text-white rounded hover:bg-blue-700 transition">
+                                class="px-4 py-2 text-sm font-bold bg-blue-600 text-white rounded-lg shadow-sm shadow-blue-200 hover:bg-blue-700 hover:shadow-md transition-all flex items-center gap-1.5">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                 Start Kamera
                             </button>
                             <button id="stop-camera"
-                                class="px-3 py-1 text-xs font-bold bg-red-600 text-white rounded hover:bg-red-700 transition hidden">
+                                class="px-4 py-2 text-sm font-bold bg-rose-50 text-rose-600 border border-rose-200 rounded-lg hover:bg-rose-600 hover:text-white transition-all hidden flex items-center gap-1.5">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"></path></svg>
                                 Stop
                             </button>
                             <button onclick="openNonPresenceModal('Izin')"
-                                class="px-3 py-1 text-xs font-bold bg-amber-500 text-white rounded hover:bg-amber-600 transition">
-                                📋 Ajukan Izin
+                                class="px-4 py-2 text-sm font-semibold bg-white text-slate-700 border border-slate-300 rounded-lg hover:bg-slate-50 hover:text-blue-600 transition-all shadow-sm">
+                                📝 Ajukan Izin
                             </button>
                             <button onclick="openNonPresenceModal('Sakit')"
-                                class="px-3 py-1 text-xs font-bold bg-rose-500 text-white rounded hover:bg-rose-600 transition">
+                                class="px-4 py-2 text-sm font-semibold bg-white text-slate-700 border border-slate-300 rounded-lg hover:bg-slate-50 hover:text-rose-600 transition-all shadow-sm">
                                 🏥 Lapor Sakit
                             </button>
                         </div>
                     </div>
+
+                    {{-- CSS OVERRIDES UNTUK HTML5-QRCODE --}}
+                    <style>
+                        #reader {
+                            border: none !important;
+                        }
+                        #reader__dashboard_section_csr span {
+                            display: none !important; /* Hilangkan tulisan aneh Select Camera */
+                        }
+                        #html5-qrcode-select-camera {
+                            width: 100%;
+                            padding: 10px 16px;
+                            border-radius: 8px;
+                            border: 1px solid #cbd5e1;
+                            background-color: #f8fafc;
+                            color: #334155;
+                            font-size: 14px;
+                            font-weight: 500;
+                            margin-bottom: 16px;
+                            margin-top: 8px;
+                            outline: none;
+                            cursor: pointer;
+                            appearance: none;
+                            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+                            background-repeat: no-repeat;
+                            background-position: right 12px center;
+                            background-size: 16px;
+                        }
+                        #html5-qrcode-button-camera-start {
+                            width: 100%;
+                            background-color: #2563eb !important;
+                            color: white !important;
+                            font-weight: 600;
+                            padding: 12px 16px;
+                            border-radius: 8px;
+                            border: none;
+                            cursor: pointer;
+                            transition: all 0.2s ease;
+                            margin-bottom: 12px;
+                            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+                        }
+                        #html5-qrcode-button-camera-start:hover {
+                            background-color: #1d4ed8 !important;
+                        }
+                        #html5-qrcode-button-camera-stop {
+                            width: 100%;
+                            background-color: #ef4444 !important;
+                            color: white !important;
+                            font-weight: 600;
+                            padding: 12px 16px;
+                            border-radius: 8px;
+                            border: none;
+                            cursor: pointer;
+                            transition: all 0.2s ease;
+                            margin-bottom: 12px;
+                        }
+                        #html5-qrcode-button-camera-stop:hover {
+                            background-color: #b91c1c !important;
+                        }
+                        #html5-qrcode-anchor-scan-type-change {
+                            color: #64748b !important;
+                            text-decoration: none !important;
+                            font-size: 13px;
+                            font-weight: 600;
+                            display: block;
+                            margin-top: 10px;
+                            padding: 8px;
+                            border-radius: 6px;
+                        }
+                        #html5-qrcode-anchor-scan-type-change:hover {
+                            color: #2563eb !important;
+                            background-color: #eff6ff !important;
+                        }
+                        #html5-qrcode-button-file-selection {
+                            width: 100%;
+                            background-color: #f1f5f9 !important;
+                            color: #475569 !important;
+                            font-weight: 600;
+                            padding: 10px 16px;
+                            border-radius: 8px;
+                            border: 1px solid #cbd5e1;
+                            cursor: pointer;
+                            transition: all 0.2s ease;
+                        }
+                        #html5-qrcode-button-file-selection:hover {
+                            background-color: #e2e8f0 !important;
+                        }
+                    </style>
 
                     <div
                         class="relative bg-slate-50 rounded-b-xl overflow-hidden min-h-[400px] flex flex-col items-center justify-center">
