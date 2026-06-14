@@ -286,17 +286,17 @@
                                     <td class="px-6 py-4 text-center">
                                         <div class="flex items-center justify-center gap-2">
                                             {{-- Form Approve --}}
-                                            <form action="{{ route('admin.rekap-absensi.approve', $pending->id) }}" method="POST">
+                                            <form id="form-approve-{{ $pending->id }}" action="{{ route('admin.rekap-absensi.approve', $pending->id) }}" method="POST">
                                                 @csrf
-                                                <button type="submit" onclick="return confirm('Yakin ingin MENYETUJUI pengajuan ini?')" class="flex items-center justify-center h-8 w-8 rounded bg-emerald-100 text-emerald-600 hover:bg-emerald-200 transition" title="Setujui">
+                                                <button type="button" onclick="confirmApprove('{{ $pending->id }}')" class="flex items-center justify-center h-8 w-8 rounded bg-emerald-100 text-emerald-600 hover:bg-emerald-200 transition" title="Setujui">
                                                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
                                                 </button>
                                             </form>
 
                                             {{-- Form Reject --}}
-                                            <form action="{{ route('admin.rekap-absensi.reject', $pending->id) }}" method="POST">
+                                            <form id="form-reject-{{ $pending->id }}" action="{{ route('admin.rekap-absensi.reject', $pending->id) }}" method="POST">
                                                 @csrf
-                                                <button type="submit" onclick="return confirm('Yakin ingin MENOLAK pengajuan ini?')" class="flex items-center justify-center h-8 w-8 rounded bg-rose-100 text-rose-600 hover:bg-rose-200 transition" title="Tolak">
+                                                <button type="button" onclick="confirmReject('{{ $pending->id }}')" class="flex items-center justify-center h-8 w-8 rounded bg-rose-100 text-rose-600 hover:bg-rose-200 transition" title="Tolak">
                                                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                                                 </button>
                                             </form>
@@ -375,6 +375,40 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     document.getElementById('form-clear-old').submit();
+                }
+            });
+        }
+
+        function confirmApprove(id) {
+            Swal.fire({
+                title: 'Setujui Pengajuan?',
+                text: "Apakah Anda yakin ingin menyetujui pengajuan Izin/Sakit ini?",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#10b981',
+                cancelButtonColor: '#94a3b8',
+                confirmButtonText: 'Ya, Setujui!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('form-approve-' + id).submit();
+                }
+            });
+        }
+
+        function confirmReject(id) {
+            Swal.fire({
+                title: 'Tolak Pengajuan?',
+                text: "Apakah Anda yakin ingin MENOLAK pengajuan Izin/Sakit ini?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#94a3b8',
+                confirmButtonText: 'Ya, Tolak!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('form-reject-' + id).submit();
                 }
             });
         }

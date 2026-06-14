@@ -54,9 +54,9 @@
                                         @endforeach
                                     </ul>
                                 </div>
-                                <form action="{{ route('dashboard.admin.proses-sp', $warning['user']->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin sudah menindaklanjuti/memberikan SP kepada {{ $warning['user']->name }}? Tindakan ini akan mereset hitungan dosanya bulan ini.')">
+                                <form id="form-sp-{{ $warning['user']->id }}" action="{{ route('dashboard.admin.proses-sp', $warning['user']->id) }}" method="POST">
                                     @csrf
-                                    <button type="submit" class="w-full inline-flex justify-center items-center gap-2 rounded-lg bg-rose-50 border border-rose-200 px-3 py-2 text-xs font-semibold text-rose-700 hover:bg-rose-600 hover:text-white transition-colors duration-200">
+                                    <button type="button" onclick="confirmSP('{{ $warning['user']->id }}', '{{ addslashes($warning['user']->name) }}', '{{ $warning['sp_level'] }}')" class="w-full inline-flex justify-center items-center gap-2 rounded-lg bg-rose-50 border border-rose-200 px-3 py-2 text-xs font-semibold text-rose-700 hover:bg-rose-600 hover:text-white transition-colors duration-200">
                                         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                                         </svg>
@@ -356,5 +356,23 @@
                 }
             });
         });
+
+        function confirmSP(userId, userName, spLevel) {
+            let spLabel = spLevel == 2 ? 'SP2' : 'SP1';
+            Swal.fire({
+                title: 'Tindak Lanjut Pelanggaran?',
+                text: `Apakah Anda yakin sudah memproses peringatan (${spLabel}) kepada ${userName}? Tindakan ini akan mereset hitungan indisipliner bulan ini.`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#e11d48',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Ya, Tandai Selesai!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('form-sp-' + userId).submit();
+                }
+            });
+        }
     </script>
 @endsection
