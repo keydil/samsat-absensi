@@ -110,6 +110,9 @@ Route::post('login', [AuthController::class, 'login'])->name('auth.login');
 Route::get('dashboard/admin', [AdminController::class, 'index'])
     ->name('dashboard.admin')
     ->middleware('RoleUser:Admin');
+Route::post('dashboard/admin/proses-sp/{id}', [AdminController::class, 'prosesSP'])
+    ->name('dashboard.admin.proses-sp')
+    ->middleware('RoleUser:Admin');
 Route::get('dashboard/karyawan', [UserController::class, 'index'])
     ->name('dashboard.user')
     ->middleware('RoleUser:Karyawan');

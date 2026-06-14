@@ -39,16 +39,30 @@
                     
                     <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         @foreach($usersWithWarnings as $warning)
-                            <div class="bg-white rounded border border-rose-200 p-3 shadow-sm">
-                                <p class="font-bold text-slate-800">{{ $warning['user']->name }}</p>
-                                <ul class="mt-1 space-y-1">
-                                    @foreach($warning['issues'] as $issue)
-                                        <li class="text-xs text-rose-600 flex items-center gap-1">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
-                                            {{ $issue }}
-                                        </li>
-                                    @endforeach
-                                </ul>
+                            <div class="bg-white rounded border border-rose-200 p-4 shadow-sm flex flex-col justify-between h-full relative overflow-hidden">
+                                @if($warning['sp_level'] == 2)
+                                    <div class="absolute top-0 right-0 bg-rose-600 text-white text-[10px] font-bold px-2 py-1 rounded-bl-lg">SP2</div>
+                                @endif
+                                <div>
+                                    <p class="font-bold text-slate-800">{{ $warning['user']->name }}</p>
+                                    <ul class="mt-2 space-y-1 mb-4">
+                                        @foreach($warning['issues'] as $issue)
+                                            <li class="text-xs text-rose-600 flex items-center gap-1">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                                                {{ $issue }}
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                                <form action="{{ route('dashboard.admin.proses-sp', $warning['user']->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin sudah menindaklanjuti/memberikan SP kepada {{ $warning['user']->name }}? Tindakan ini akan mereset hitungan dosanya bulan ini.')">
+                                    @csrf
+                                    <button type="submit" class="w-full inline-flex justify-center items-center gap-2 rounded-lg bg-rose-50 border border-rose-200 px-3 py-2 text-xs font-semibold text-rose-700 hover:bg-rose-600 hover:text-white transition-colors duration-200">
+                                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                        Tandai Selesai (Proses {{ $warning['sp_level'] == 2 ? 'SP2' : 'SP1' }})
+                                    </button>
+                                </form>
                             </div>
                         @endforeach
                     </div>

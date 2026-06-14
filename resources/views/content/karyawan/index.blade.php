@@ -8,8 +8,23 @@
     <div class="space-y-8">
         
         {{-- WARNING OTOMATIS (Alert SP) --}}
-        @if(count($warnings ?? []) > 0)
-            <div class="rounded-xl border border-rose-200 bg-rose-50 p-6 shadow-sm">
+        @if(isset($spStatus) && $spStatus == 'SP1' && count($warnings ?? []) == 0)
+            <div class="rounded-xl border border-amber-300 bg-amber-50 p-6 shadow-sm">
+                <div class="flex items-start gap-4">
+                    <div class="flex-shrink-0 text-amber-600">
+                        <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-amber-800">Status Anda: Dalam Masa Pengawasan (SP1)</h3>
+                        <p class="mt-2 text-sm text-amber-700">Tindakan peringatan telah diproses oleh Admin HRD. Dosa keterlambatan dan absen Anda diputihkan bersyarat. Harap perbaiki performa kehadiran Anda bulan ini.</p>
+                        <p class="mt-3 text-xs font-semibold text-amber-800 bg-amber-200/50 inline-block px-2 py-1 rounded">Jika pelanggaran terulang, SP2 akan diturunkan.</p>
+                    </div>
+                </div>
+            </div>
+        @elseif(count($warnings ?? []) > 0)
+            <div class="rounded-xl border border-rose-300 bg-rose-50 p-6 shadow-sm">
                 <div class="flex items-start gap-4">
                     <div class="flex-shrink-0 text-rose-600">
                         <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -17,13 +32,15 @@
                         </svg>
                     </div>
                     <div>
-                        <h3 class="text-lg font-bold text-rose-800">⚠️ SURAT PERINGATAN (SP) OTOMATIS</h3>
+                        <h3 class="text-lg font-bold text-rose-800">
+                            {{ isset($spStatus) && $spStatus == 'SP2' ? '⚠️ PERINGATAN KERAS (SP2) OTOMATIS' : '⚠️ SURAT PERINGATAN (SP1) OTOMATIS' }}
+                        </h3>
                         <div class="mt-2 text-sm text-rose-700 space-y-1">
                             @foreach($warnings as $warning)
                                 <p>• {{ $warning }}</p>
                             @endforeach
                         </div>
-                        <p class="mt-3 text-xs font-semibold text-rose-800 bg-rose-200/50 inline-block px-2 py-1 rounded">Pesan ini telah diteruskan ke Admin HRD.</p>
+                        <p class="mt-3 text-xs font-semibold text-rose-800 bg-rose-200/50 inline-block px-2 py-1 rounded">Pesan ini telah diteruskan ke Admin HRD untuk tindakan lanjut.</p>
                     </div>
                 </div>
             </div>

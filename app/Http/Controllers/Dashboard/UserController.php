@@ -38,27 +38,55 @@ class UserController extends Controller
         $userHadir = 0;
         $userTelat = 0;
         $userIzinSakit = 0;
+        
+        $warningTelat = 0;
+        $warningHadir = 0;
+        $warningIzinSakit = 0;
+
+        $lastSpDate = $user->last_sp_at ? Carbon::parse($user->last_sp_at) : null;
+        $hasActiveSpThisMonth = $lastSpDate && $lastSpDate->gte($startOfMonth);
 
         foreach ($absenBulanIni as $date => $records) {
             $status = $records->first()->status;
-            if ($status == 'Hadir') $userHadir++;
-            elseif ($status == 'Telat') $userTelat++;
-            elseif (in_array($status, ['Izin', 'Sakit'])) $userIzinSakit++;
+            if ($status == 'Hadir') {
+                $userHadir++;
+                if (!$hasActiveSpThisMonth || $date > $lastSpDate->format('Y-m-d')) $warningHadir++;
+            }
+            elseif ($status == 'Telat') {
+                $userTelat++;
+                if (!$hasActiveSpThisMonth || $date > $lastSpDate->format('Y-m-d')) $warningTelat++;
+            }
+            elseif (in_array($status, ['Izin', 'Sakit'])) {
+                $userIzinSakit++;
+                if (!$hasActiveSpThisMonth || $date > $lastSpDate->format('Y-m-d')) $warningIzinSakit++;
+            }
         }
 
         $userBolos = max(0, $totalWorkingDays - ($userHadir + $userTelat + $userIzinSakit));
         
+        // Hitung bolos paska SP
+        $workingDaysForWarning = $totalWorkingDays;
+        if ($hasActiveSpThisMonth) {
+            $workingDaysForWarning = $workingDates->filter(function($d) use ($lastSpDate) {
+                return $d > $lastSpDate->format('Y-m-d');
+            })->count();
+        }
+        $warningBolos = max(0, $workingDaysForWarning - ($warningHadir + $warningTelat + $warningIzinSakit));
+
         // 3. LOGIKA SKOR KEDISIPLINAN
         $score = ($userHadir * 10) + ($userTelat * -5) + ($userBolos * -10);
 
-        // 4. LOGIKA WARNING OTOMATIS
+        // 4. LOGIKA WARNING OTOMATIS (Strike System)
         $warnings = [];
-        if ($userTelat > 5) {
-            $warnings[] = "Anda telah Terlambat sebanyak {$userTelat} kali bulan ini. Harap perbaiki kedisiplinan Anda.";
+        if ($warningTelat > 5) {
+            $warnings[] = "Anda telah Terlambat sebanyak {$warningTelat} kali bulan ini" . ($hasActiveSpThisMonth ? " (Paska SP1)" : "") . ". Harap perbaiki kedisiplinan Anda.";
         }
-        if ($userBolos > 3) {
-            $warnings[] = "Anda tercatat Tidak Hadir (Bolos) sebanyak {$userBolos} kali bulan ini. SP (Surat Peringatan) dapat dikeluarkan.";
+        if ($warningBolos > 3) {
+            $warnings[] = "Anda tercatat Tidak Hadir (Bolos) sebanyak {$warningBolos} kali bulan ini" . ($hasActiveSpThisMonth ? " (Paska SP1)" : "") . ". Tindakan indisipliner lanjutan dapat diberikan.";
         }
+        
+        // Cek status SP
+        $spStatus = $hasActiveSpThisMonth ? (count($warnings) > 0 ? 'SP2' : 'SP1') : 'Aman';
 
         $totalHadir = $userHadir + $userTelat; // Untuk total absensi card lama
   
@@ -78,7 +106,7 @@ class UserController extends Controller
             ->get();
 
         return view('content.karyawan.index', compact(
-            'totalHadir', 'riwayat', 'userHadir', 'userTelat', 'userIzinSakit', 'userBolos', 'score', 'warnings'
+            'totalHadir', 'riwayat', 'userHadir', 'userTelat', 'userIzinSakit', 'userBolos', 'score', 'warnings', 'spStatus'
         ));
     }
     public function history(Request $request)

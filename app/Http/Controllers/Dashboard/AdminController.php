@@ -103,25 +103,52 @@ class AdminController extends Controller
             $userHadir = 0;
             $userTelat = 0;
             $userIzinSakit = 0;
+            
+            $warningTelat = 0;
+            $warningHadir = 0;
+            $warningIzinSakit = 0;
+
+            $lastSpDate = $user->last_sp_at ? Carbon::parse($user->last_sp_at) : null;
+            $hasActiveSpThisMonth = $lastSpDate && $lastSpDate->gte($startOfMonth);
 
             foreach ($userAbsens as $date => $records) {
                 $status = $records->first()->status;
-                if ($status == 'Hadir') $userHadir++;
-                elseif ($status == 'Telat') $userTelat++;
-                elseif (in_array($status, ['Izin', 'Sakit'])) $userIzinSakit++;
+                if ($status == 'Hadir') {
+                    $userHadir++;
+                    if (!$hasActiveSpThisMonth || $date > $lastSpDate->format('Y-m-d')) $warningHadir++;
+                }
+                elseif ($status == 'Telat') {
+                    $userTelat++;
+                    if (!$hasActiveSpThisMonth || $date > $lastSpDate->format('Y-m-d')) $warningTelat++;
+                }
+                elseif (in_array($status, ['Izin', 'Sakit'])) {
+                    $userIzinSakit++;
+                    if (!$hasActiveSpThisMonth || $date > $lastSpDate->format('Y-m-d')) $warningIzinSakit++;
+                }
             }
 
             $userBolos = max(0, $totalWorkingDays - ($userHadir + $userTelat + $userIzinSakit));
             
-            // LOGIKA WARNING
+            // Hitung bolos paska SP
+            $workingDaysForWarning = $totalWorkingDays;
+            if ($hasActiveSpThisMonth) {
+                // Hitung hari kerja HANYA setelah SP
+                $workingDaysForWarning = $workingDates->filter(function($d) use ($lastSpDate) {
+                    return $d > $lastSpDate->format('Y-m-d');
+                })->count();
+            }
+            $warningBolos = max(0, $workingDaysForWarning - ($warningHadir + $warningTelat + $warningIzinSakit));
+            
+            // LOGIKA WARNING (Strike System)
             $userWarnings = [];
-            if ($userTelat > 5) $userWarnings[] = "Sering Terlambat ($userTelat kali)";
-            if ($userBolos > 3) $userWarnings[] = "Sering Bolos ($userBolos kali)";
+            if ($warningTelat > 5) $userWarnings[] = "Sering Terlambat ($warningTelat kali)";
+            if ($warningBolos > 3) $userWarnings[] = "Sering Bolos ($warningBolos kali)";
             
             if (count($userWarnings) > 0) {
                 $usersWithWarnings[] = [
                     'user' => $user,
-                    'issues' => $userWarnings
+                    'issues' => $userWarnings,
+                    'sp_level' => $hasActiveSpThisMonth ? 2 : 1 // Kalau udah pernah di SP bulan ini dan masuk lagi, berarti SP2
                 ];
             }
 
@@ -171,5 +198,14 @@ class AdminController extends Controller
         $namaFile = 'Rekap-Absensi-' . ($tanggal ?? 'Semua') . '.xlsx';
 
         return Excel::download(new RekapAbsensiExport($tanggal), $namaFile);
+    }
+
+    public function prosesSP($id)
+    {
+        $user = User::findOrFail($id);
+        $user->last_sp_at = \Carbon\Carbon::now();
+        $user->save();
+
+        return redirect()->back()->with('success', 'Tindakan Peringatan (SP) berhasil diproses untuk ' . $user->name);
     }
 }
