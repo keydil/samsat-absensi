@@ -77,7 +77,10 @@
                             border: none !important;
                         }
                         #reader__dashboard_section_csr span {
-                            display: none !important; /* Hilangkan tulisan aneh Select Camera */
+                            font-size: 0 !important; /* Hilangkan tulisan teks tapi pertahankan select/button */
+                        }
+                        #reader__dashboard_section_csr span > * {
+                            font-size: 14px !important; /* Kembalikan font size untuk select dan button */
                         }
                         #html5-qrcode-select-camera {
                             width: 100%;
