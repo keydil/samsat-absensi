@@ -76,12 +76,6 @@
                         #reader {
                             border: none !important;
                         }
-                        #reader__dashboard_section_csr span {
-                            font-size: 0 !important; /* Hilangkan tulisan teks tapi pertahankan select/button */
-                        }
-                        #reader__dashboard_section_csr span > * {
-                            font-size: 14px !important; /* Kembalikan font size untuk select dan button */
-                        }
                         #html5-qrcode-select-camera {
                             width: 100%;
                             padding: 10px 16px;
