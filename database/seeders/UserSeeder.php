@@ -15,9 +15,9 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         User::firstOrCreate(
-            ['username' => 'admin123'],
+            ['code_name' => 'ADM0432204'],
             [
-                'code_name' => 'ADM0432204',
+                'username' => 'admin123',
                 'name' => 'User Admin',
                 'email' => 'admin123@gmail.com',
                 'phone' => '6280987654321',
@@ -26,9 +26,9 @@ class UserSeeder extends Seeder
             ]
         );
         User::firstOrCreate(
-            ['username' => 'karyawan123'],
+            ['code_name' => 'EMP2245810'],
             [
-                'code_name' => 'EMP2245810',
+                'username' => 'karyawan123',
                 'name' => 'ilham khoerun', // GW GANTI JADI ILHAM SEKALIAN!
                 'email' => 'karyawan123@gmail.com',
                 'phone' => '6281234567890',
