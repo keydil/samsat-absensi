@@ -54,23 +54,64 @@
             {{-- TAB 1: Semua Data --}}
             <div x-show="activeTab === 'semua'">
                 <div class="border-b border-slate-100 bg-slate-50/50 px-6 py-4">
-                <form action="{{ route('admin.rekap-absensi') }}" method="GET" class="flex gap-4">
-                    <input type="date" name="tanggal"
-                        class="rounded-lg border-slate-200 text-sm focus:ring-blue-500 focus:border-blue-500"
-                        value="{{ request('tanggal') ?? date('Y-m-d') }}">
-                    <button type="submit"
-                        class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
-                        Terapkan Filter
-                    </button>
+                    <form action="{{ route('admin.rekap-absensi') }}" method="GET" class="flex flex-col sm:flex-row flex-wrap gap-4 items-end">
+                        <div class="w-full sm:w-auto flex-1 min-w-[200px]">
+                            <label class="block text-xs font-bold text-slate-500 mb-1">Tipe Filter Waktu</label>
+                            <select name="filter_type" class="w-full rounded-lg border-slate-200 text-sm focus:ring-blue-500 focus:border-blue-500">
+                                <option value="daily" {{ request('filter_type', 'daily') == 'daily' ? 'selected' : '' }}>Harian</option>
+                                <option value="weekly" {{ request('filter_type') == 'weekly' ? 'selected' : '' }}>Mingguan</option>
+                                <option value="monthly" {{ request('filter_type') == 'monthly' ? 'selected' : '' }}>Bulanan</option>
+                            </select>
+                        </div>
 
-                    @if (request('tanggal'))
-                        <a href="{{ route('admin.rekap-absensi') }}"
-                            class="rounded-lg bg-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-300 transition-colors">
-                            Reset
-                        </a>
-                    @endif
-                </form>
-            </div>
+                        <div class="w-full sm:w-auto flex-1 min-w-[200px]">
+                            <label class="block text-xs font-bold text-slate-500 mb-1">Pilih Waktu</label>
+                            <input type="{{ request('filter_type') == 'monthly' ? 'month' : (request('filter_type') == 'weekly' ? 'week' : 'date') }}" 
+                                name="tanggal"
+                                id="tanggalFilter"
+                                class="w-full rounded-lg border-slate-200 text-sm focus:ring-blue-500 focus:border-blue-500"
+                                value="{{ request('tanggal') ?? date('Y-m-d') }}">
+                        </div>
+
+                        <div class="w-full sm:w-auto flex-1 min-w-[200px]">
+                            <label class="block text-xs font-bold text-slate-500 mb-1">Karyawan</label>
+                            <select name="user_id" class="w-full rounded-lg border-slate-200 text-sm focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">-- Semua Karyawan --</option>
+                                @foreach($users as $user)
+                                    <option value="{{ $user->id }}" {{ request('user_id') == $user->id ? 'selected' : '' }}>{{ $user->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="flex gap-2 w-full sm:w-auto">
+                            <button type="submit"
+                                class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors w-full sm:w-auto flex-1">
+                                Terapkan Filter
+                            </button>
+
+                            @if (request('tanggal') || request('user_id') || request('filter_type'))
+                                <a href="{{ route('admin.rekap-absensi') }}"
+                                    class="rounded-lg bg-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-300 transition-colors text-center w-full sm:w-auto flex-1">
+                                    Reset
+                                </a>
+                            @endif
+                        </div>
+                    </form>
+                </div>
+
+                <script>
+                    document.querySelector('select[name="filter_type"]').addEventListener('change', function() {
+                        const dateInput = document.getElementById('tanggalFilter');
+                        if (this.value === 'monthly') {
+                            dateInput.type = 'month';
+                        } else if (this.value === 'weekly') {
+                            dateInput.type = 'week';
+                        } else {
+                            dateInput.type = 'date';
+                        }
+                        dateInput.value = ''; // clear on change to avoid format clash
+                    });
+                </script>
 
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-sm text-slate-600">
@@ -276,9 +317,9 @@
                                     </td>
                                     <td class="px-6 py-4 text-center">
                                         @if($pending->bukti_surat)
-                                            <a href="{{ $pending->bukti_surat }}" target="_blank" class="inline-flex items-center gap-1 rounded bg-white px-3 py-1.5 text-xs font-semibold text-blue-600 shadow-sm ring-1 ring-inset ring-blue-300 hover:bg-blue-50 transition">
+                                            <button type="button" onclick="openBuktiModal('{{ $pending->bukti_surat }}', '{{ $pending->id }}', '{{ addslashes($pending->user->name ?? 'User Terhapus') }}', '{{ $pending->status }}')" class="inline-flex items-center gap-1 rounded bg-white px-3 py-1.5 text-xs font-semibold text-blue-600 shadow-sm ring-1 ring-inset ring-blue-300 hover:bg-blue-50 transition">
                                                 🖼️ Cek Surat
-                                            </a>
+                                            </button>
                                         @else
                                             <span class="text-xs text-slate-400">Tidak ada file</span>
                                         @endif
@@ -322,11 +363,80 @@
 
         </div>
     </div>
+
+    {{-- MODAL BUKTI SURAT --}}
+    <div id="buktiModal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 sm:p-6">
+        <!-- Backdrop -->
+        <div class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm transition-opacity" onclick="closeBuktiModal()"></div>
+        
+        <!-- Modal Panel -->
+        <div class="relative w-full max-w-3xl transform overflow-hidden rounded-2xl bg-white shadow-2xl transition-all flex flex-col max-h-[90vh]">
+            <!-- Header -->
+            <div class="bg-slate-50 px-6 py-4 border-b border-slate-100 flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-3">
+                    <span class="text-2xl" id="modalIcon">📄</span>
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-800" id="modalTitle">Bukti Surat</h3>
+                        <p class="text-xs text-slate-500" id="modalSubtitle">Pegawai: -</p>
+                    </div>
+                </div>
+                <button onclick="closeBuktiModal()" class="rounded-lg p-2 text-slate-400 hover:bg-slate-200 hover:text-slate-600 transition-colors">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Body (Image) -->
+            <div class="overflow-y-auto p-4 flex-1 flex items-center justify-center bg-slate-100/50">
+                <img id="modalImage" src="" alt="Bukti Surat" class="max-w-full max-h-[60vh] object-contain rounded-lg shadow-sm border border-slate-200">
+            </div>
+
+            <!-- Footer (Action Buttons) -->
+            <div class="bg-slate-50 px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-3 shrink-0">
+                <button type="button" onclick="closeBuktiModal()" class="rounded-lg px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-300 hover:bg-slate-50 transition-colors">
+                    Tutup
+                </button>
+                <button type="button" id="modalBtnReject" class="rounded-lg px-4 py-2 text-sm font-medium text-white bg-rose-600 hover:bg-rose-700 transition-colors shadow-sm flex items-center gap-2">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    Tolak
+                </button>
+                <button type="button" id="modalBtnApprove" class="rounded-lg px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 transition-colors shadow-sm flex items-center gap-2">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                    Setujui
+                </button>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        // Modal Bukti Logic
+        function openBuktiModal(imgUrl, absensiId, userName, statusType) {
+            document.getElementById('modalImage').src = imgUrl;
+            document.getElementById('modalTitle').textContent = `Bukti Surat ${statusType}`;
+            document.getElementById('modalSubtitle').textContent = `Pegawai: ${userName}`;
+            document.getElementById('modalIcon').textContent = statusType === 'Sakit' ? '🏥' : '📝';
+            
+            // Re-bind actions
+            document.getElementById('modalBtnApprove').onclick = () => { closeBuktiModal(); confirmApprove(absensiId); };
+            document.getElementById('modalBtnReject').onclick = () => { closeBuktiModal(); confirmReject(absensiId); };
+            
+            const modal = document.getElementById('buktiModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeBuktiModal() {
+            const modal = document.getElementById('buktiModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.body.style.overflow = '';
+            document.getElementById('modalImage').src = '';
+        }
         // Notifikasi Sukses dari Controller
         @if(session('success'))
             Swal.fire({

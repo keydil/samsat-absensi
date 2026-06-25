@@ -18,24 +18,63 @@
 
         <div class="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
             
-            <div class="border-b border-slate-100 bg-slate-50/50 px-6 py-4">
-                <form action="{{ route('user.history') }}" method="GET" class="flex gap-4">
-                    <input 
-                        type="date" 
-                        name="tanggal" 
-                        class="rounded-lg border-slate-200 text-sm focus:ring-blue-500 focus:border-blue-500" 
-                        value="{{ request('tanggal') }}"
-                    >
-                    <button type="submit" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
-                        Cari
-                    </button>
-                    @if(request('tanggal'))
-                        <a href="{{ route('user.history') }}" class="rounded-lg bg-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-300 transition-colors">
-                            Reset
-                        </a>
-                    @endif
+            <div class="border-b border-slate-100 bg-slate-50/50 px-6 py-4 flex flex-col sm:flex-row gap-4 items-end justify-between">
+                <form action="{{ route('user.history') }}" method="GET" class="flex flex-col sm:flex-row gap-4 items-end flex-1">
+                    <div class="w-full sm:w-auto">
+                        <label class="block text-xs font-bold text-slate-500 mb-1">Filter Berdasarkan</label>
+                        <select name="filter_type" class="w-full rounded-lg border-slate-200 text-sm focus:ring-blue-500 focus:border-blue-500">
+                            <option value="daily" {{ request('filter_type', 'daily') == 'daily' ? 'selected' : '' }}>Harian</option>
+                            <option value="weekly" {{ request('filter_type') == 'weekly' ? 'selected' : '' }}>Mingguan</option>
+                            <option value="monthly" {{ request('filter_type') == 'monthly' ? 'selected' : '' }}>Bulanan</option>
+                        </select>
+                    </div>
+
+                    <div class="w-full sm:w-auto">
+                        <label class="block text-xs font-bold text-slate-500 mb-1">Pilih Waktu</label>
+                        <input 
+                            type="{{ request('filter_type') == 'monthly' ? 'month' : (request('filter_type') == 'weekly' ? 'week' : 'date') }}" 
+                            name="tanggal" 
+                            id="tanggalFilter"
+                            class="w-full rounded-lg border-slate-200 text-sm focus:ring-blue-500 focus:border-blue-500" 
+                            value="{{ request('tanggal') }}"
+                        >
+                    </div>
+
+                    <div class="flex gap-2 w-full sm:w-auto">
+                        <button type="submit" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors w-full sm:w-auto">
+                            Cari
+                        </button>
+                        @if(request('tanggal') || request('filter_type'))
+                            <a href="{{ route('user.history') }}" class="rounded-lg bg-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-300 transition-colors text-center w-full sm:w-auto">
+                                Reset
+                            </a>
+                        @endif
+                    </div>
                 </form>
+
+                <div class="w-full sm:w-auto mt-4 sm:mt-0">
+                    <a href="{{ route('user.history.export', request()->query()) }}" class="inline-flex items-center justify-center gap-2 w-full sm:w-auto rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-emerald-700 transition-all">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        Download Excel
+                    </a>
+                </div>
             </div>
+            
+            <script>
+                document.querySelector('select[name="filter_type"]').addEventListener('change', function() {
+                    const dateInput = document.getElementById('tanggalFilter');
+                    if (this.value === 'monthly') {
+                        dateInput.type = 'month';
+                    } else if (this.value === 'weekly') {
+                        dateInput.type = 'week';
+                    } else {
+                        dateInput.type = 'date';
+                    }
+                    dateInput.value = ''; // clear on change to avoid format clash
+                });
+            </script>
 
             <div class="p-4 sm:p-6 bg-slate-50">
                 <div class="space-y-4">

@@ -112,6 +112,8 @@ class UserController extends Controller
     public function history(Request $request)
     {
         $user = Auth::user();
+        $filterType = $request->input('filter_type', 'daily');
+        $tanggalFilter = $request->input('tanggal');
 
         $query = Absen::selectRaw('
                 date,
@@ -120,18 +122,70 @@ class UserController extends Controller
                 MAX(status) as status,
                 MAX(approval_status) as approval_status,
                 MAX(bukti_surat) as bukti_surat,
+                MAX(status_desc) as status_desc,
                 MIN(created_at) as created_at
             ')
             ->where('user_id', $user->id)
             ->groupBy('date')
             ->orderBy('date', 'desc');
 
-        if ($request->has('tanggal') && $request->tanggal != null) {
-            $query->whereDate('created_at', $request->tanggal);
+        if ($tanggalFilter) {
+            if ($filterType == 'daily') {
+                $query->whereDate('date', $tanggalFilter);
+            } elseif ($filterType == 'weekly') {
+                $startOfWeek = \Carbon\Carbon::parse($tanggalFilter)->startOfWeek();
+                $endOfWeek = \Carbon\Carbon::parse($tanggalFilter)->endOfWeek();
+                $query->whereBetween('date', [$startOfWeek, $endOfWeek]);
+            } elseif ($filterType == 'monthly') {
+                $startOfMonth = \Carbon\Carbon::parse($tanggalFilter)->startOfMonth();
+                $endOfMonth = \Carbon\Carbon::parse($tanggalFilter)->endOfMonth();
+                $query->whereBetween('date', [$startOfMonth, $endOfMonth]);
+            }
         }
 
         $riwayat = $query->paginate(10)->withQueryString();
 
-        return view('content.karyawan.riwayat.riwayat', compact('riwayat'));
+        return view('content.karyawan.riwayat.riwayat', compact('riwayat', 'filterType', 'tanggalFilter'));
+    }
+
+    public function exportHistory(Request $request)
+    {
+        $user = Auth::user();
+        $filterType = $request->input('filter_type', 'daily');
+        $tanggalFilter = $request->input('tanggal');
+        
+        $fileName = 'Riwayat_Absensi_' . str_replace(' ', '_', $user->name);
+        if ($tanggalFilter) {
+            if ($filterType == 'daily') {
+                $fileName .= '_' . \Carbon\Carbon::parse($tanggalFilter)->format('d_M_Y');
+            } elseif ($filterType == 'weekly') {
+                $fileName .= '_Minggu_' . \Carbon\Carbon::parse($tanggalFilter)->format('W_Y');
+            } elseif ($filterType == 'monthly') {
+                $fileName .= '_Bulan_' . \Carbon\Carbon::parse($tanggalFilter)->format('M_Y');
+            }
+        } else {
+            $fileName .= '_Keseluruhan';
+        }
+        $fileName .= '.xlsx';
+
+        return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\AbsensiExport($filterType, $tanggalFilter, $user->id), $fileName);
+    }
+
+    public function globalHistory(Request $request)
+    {
+        $tanggalFilter = $request->input('tanggal', date('Y-m-d'));
+
+        // Only select safe fields for privacy: date, user_id, status
+        $riwayat = Absen::selectRaw('
+                date,
+                user_id,
+                MAX(status) as status
+            ')
+            ->with('user')
+            ->whereDate('date', $tanggalFilter)
+            ->groupBy('date', 'user_id')
+            ->get();
+
+        return view('content.karyawan.riwayat.global', compact('riwayat', 'tanggalFilter'));
     }
 }

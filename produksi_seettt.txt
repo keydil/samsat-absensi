@@ -1,0 +1,8 @@
+KODE RAHASIA: seettt
+
+Jika user mengatakan "seettt", maka tindakan gw (darrr) adalah:
+1. Menjalankan perintah: `php artisan migrate:fresh --seed`
+2. Perintah ini akan mereset bersih seluruh database (menghapus semua data dummy / data demo dari DemoAbsenSeeder).
+3. Tabel akan dikosongkan dan diisi ulang HANYA dengan akun Admin default bawaan sistem (UserSeeder).
+4. MENGHAPUS / MENG-UNCOMMENT jalur rute "Haram" (`/rahasia/suntik-absen`) dari file `routes/web.php` agar sistem 100% aman dari celah keamanan.
+5. Aplikasi siap 100% digunakan untuk Production di dunia nyata tanpa ada data "sampah" sisa TA.

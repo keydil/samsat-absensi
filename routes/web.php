@@ -154,4 +154,6 @@ Route::middleware(['RoleUser:Karyawan'])->group(function () {
     Route::post('/dashboard/karyawan/absensi/scan-qr/store', [ScanQRController::class, 'store'])->name('user.scanStore');
     Route::post('/dashboard/karyawan/absensi/non-presence', [ScanQRController::class, 'storeNonPresence'])->name('user.storeNonPresence');
     Route::get('/dashboard/user/riwayat', [UserController::class, 'history'])->name('user.history');
+    Route::get('/dashboard/user/riwayat/export-excel', [UserController::class, 'exportHistory'])->name('user.history.export');
+    Route::get('/dashboard/user/absensi-global', [UserController::class, 'globalHistory'])->name('user.globalHistory');
 });

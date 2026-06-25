@@ -631,42 +631,55 @@
             formData.append('keterangan', keterangan);
             formData.append('bukti_surat', buktiInput.files[0]);
 
-            const submitBtn = document.getElementById('np-submit-btn');
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Mengirim...';
+            Swal.fire({
+                title: 'Konfirmasi Pengajuan',
+                html: `Apakah Anda yakin ingin mengajukan <b>${status}</b>?<br><br><span class="text-sm text-rose-500">Pemalsuan surat keterangan dapat dikenakan sanksi indisipliner (SP).</span>`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#10b981',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Ya, Kirim Pengajuan',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const submitBtn = document.getElementById('np-submit-btn');
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = 'Mengirim...';
 
-            fetch("{{ route('user.storeNonPresence', [], false) }}", {
-                method: 'POST',
-                headers: { 
-                    'X-CSRF-TOKEN': csrfToken,
-                    'Accept': 'application/json'
-                },
-                body: formData
-            })
-            .then(async r => {
-                if (!r.ok) {
-                    const err = await r.json().catch(() => null);
-                    throw err || { message: `HTTP Error ${r.status}` };
+                    fetch("{{ route('user.storeNonPresence', [], false) }}", {
+                        method: 'POST',
+                        headers: { 
+                            'X-CSRF-TOKEN': csrfToken,
+                            'Accept': 'application/json'
+                        },
+                        body: formData
+                    })
+                    .then(async r => {
+                        if (!r.ok) {
+                            const err = await r.json().catch(() => null);
+                            throw err || { message: `HTTP Error ${r.status}` };
+                        }
+                        return r.json();
+                    })
+                    .then(data => {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = 'Kirim Pengajuan';
+                        if (data.success) {
+                            closeNonPresenceModal();
+                            Swal.fire({ icon: 'success', title: 'Berhasil!', text: data.message, timer: 2000, showConfirmButton: false })
+                                .then(() => location.reload());
+                        } else {
+                            const errMsg = data.errors ? Object.values(data.errors).flat().join('\n') : data.message;
+                            Swal.fire('Gagal', errMsg, 'error');
+                        }
+                    })
+                    .catch(err => {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = 'Kirim Pengajuan';
+                        const errMsg = err.message || (err.errors ? Object.values(err.errors).flat().join('\n') : 'Terjadi kesalahan jaringan.');
+                        Swal.fire('Error', errMsg, 'error');
+                    });
                 }
-                return r.json();
-            })
-            .then(data => {
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Kirim Pengajuan';
-                if (data.success) {
-                    closeNonPresenceModal();
-                    Swal.fire({ icon: 'success', title: 'Berhasil!', text: data.message, timer: 2000, showConfirmButton: false })
-                        .then(() => location.reload());
-                } else {
-                    const errMsg = data.errors ? Object.values(data.errors).flat().join('\n') : data.message;
-                    Swal.fire('Gagal', errMsg, 'error');
-                }
-            })
-            .catch(err => {
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Kirim Pengajuan';
-                const errMsg = err.message || (err.errors ? Object.values(err.errors).flat().join('\n') : 'Terjadi kesalahan jaringan.');
-                Swal.fire('Error', errMsg, 'error');
             });
         }
     </script>

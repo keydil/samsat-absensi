@@ -179,6 +179,11 @@
                         <div class="p-6 text-center text-slate-500">Belum ada data bulan ini.</div>
                     @endforelse
                 </div>
+                <div class="bg-emerald-50/50 p-3 border-t border-emerald-100 text-center">
+                    <button onclick="openLeaderboardModal()" class="text-sm font-bold text-emerald-600 hover:text-emerald-800 transition-colors w-full py-2">
+                        Lihat Semua Karyawan &rarr;
+                    </button>
+                </div>
             </div>
 
             {{-- Bottom 3 (Sering Telat/Bolos) --}}
@@ -285,10 +290,79 @@
         </div>
     </div>
 
+    {{-- MODAL FULL LEADERBOARD --}}
+    <div id="leaderboardModal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 sm:p-6">
+        <!-- Backdrop -->
+        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="closeLeaderboardModal()"></div>
+        
+        <!-- Modal Panel -->
+        <div class="relative w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white shadow-2xl transition-all flex flex-col max-h-[85vh]">
+            <!-- Header -->
+            <div class="bg-slate-50 px-6 py-4 border-b border-slate-100 flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-3">
+                    <span class="text-2xl">🏆</span>
+                    <h3 class="text-xl font-bold text-slate-800">Ranking Kedisiplinan Karyawan</h3>
+                </div>
+                <button onclick="closeLeaderboardModal()" class="rounded-lg p-2 text-slate-400 hover:bg-slate-200 hover:text-slate-600 transition-colors">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Body (Scrollable) -->
+            <div class="overflow-y-auto p-0 flex-1">
+                @forelse($pegawaiRankings as $index => $pegawai)
+                    <div class="flex items-center justify-between p-4 border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
+                        <div class="flex items-center gap-4">
+                            @php
+                                $rankClass = 'bg-slate-100 text-slate-600';
+                                if ($index == 0) $rankClass = 'bg-yellow-100 text-yellow-600';
+                                elseif ($index == 1) $rankClass = 'bg-slate-200 text-slate-600';
+                                elseif ($index == 2) $rankClass = 'bg-orange-100 text-orange-600';
+                                elseif ($pegawai['score'] < 0) $rankClass = 'bg-rose-100 text-rose-600';
+                            @endphp
+                            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full font-bold {{ $rankClass }}">
+                                #{{ $index + 1 }}
+                            </div>
+                            <div>
+                                <p class="font-bold text-slate-800">{{ $pegawai['user']->name }}</p>
+                                <p class="text-xs text-slate-500">
+                                    Hadir: {{ $pegawai['hadir'] }} | Telat: {{ $pegawai['telat'] }} | Bolos: {{ $pegawai['bolos'] }}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="text-right shrink-0">
+                            <p class="text-xl font-black {{ $pegawai['score'] < 0 ? 'text-rose-600' : 'text-emerald-600' }}">{{ $pegawai['score'] }}</p>
+                            <p class="text-[10px] uppercase font-bold tracking-wider text-slate-400">Poin</p>
+                        </div>
+                    </div>
+                @empty
+                    <div class="p-6 text-center text-slate-500">Belum ada data karyawan.</div>
+                @endforelse
+            </div>
+        </div>
+    </div>
+
     {{-- Script inisialisasi Chart.js --}}
     <!-- SweetAlert2 CDN -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        function openLeaderboardModal() {
+            const modal = document.getElementById('leaderboardModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        }
+
+        function closeLeaderboardModal() {
+            const modal = document.getElementById('leaderboardModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.body.style.overflow = '';
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             // 1. Doughnut Chart (Bulan Ini)
             const ctxMonthly = document.getElementById('monthlyChart').getContext('2d');

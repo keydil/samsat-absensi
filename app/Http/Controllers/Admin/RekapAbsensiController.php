@@ -13,7 +13,9 @@ class RekapAbsensiController extends Controller
 {
     public function index(Request $request)
     {
+        $filterType = $request->input('filter_type', 'daily'); // daily, weekly, monthly
         $tanggalFilter = $request->input('tanggal');
+        $userIdFilter = $request->input('user_id');
 
         $query = Absen::selectRaw('
                 date,
@@ -31,19 +33,32 @@ class RekapAbsensiController extends Controller
             ->groupBy('date', 'user_id')
             ->orderBy('date', 'desc');
 
-        if ($tanggalFilter) {
-            $query->whereDate('created_at', $tanggalFilter);
+        if ($userIdFilter) {
+            $query->where('user_id', $userIdFilter);
         }
 
-        $absensi = $query->paginate(10)->withQueryString(); // withQueryString biar pagination gak ngereset filter
+        if ($tanggalFilter) {
+            if ($filterType == 'daily') {
+                $query->whereDate('date', $tanggalFilter);
+            } elseif ($filterType == 'weekly') {
+                // $tanggalFilter is expected to be a string like "2023-W45" or just a date within the week
+                // For simplicity, let's assume it's just a YYYY-MM-DD date and we get that week
+                $startOfWeek = \Carbon\Carbon::parse($tanggalFilter)->startOfWeek();
+                $endOfWeek = \Carbon\Carbon::parse($tanggalFilter)->endOfWeek();
+                $query->whereBetween('date', [$startOfWeek, $endOfWeek]);
+            } elseif ($filterType == 'monthly') {
+                // $tanggalFilter is expected to be YYYY-MM
+                $startOfMonth = \Carbon\Carbon::parse($tanggalFilter)->startOfMonth();
+                $endOfMonth = \Carbon\Carbon::parse($tanggalFilter)->endOfMonth();
+                $query->whereBetween('date', [$startOfMonth, $endOfMonth]);
+            }
+        }
 
-        // Data Menunggu Persetujuan
-        $absensi_pending = Absen::where('approval_status', 'pending')
-            ->with('user')
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $absensi = $query->paginate(10)->withQueryString(); 
+        $absensi_pending = Absen::where('approval_status', 'pending')->with('user')->orderBy('created_at', 'desc')->get();
+        $users = User::where('role', 'Karyawan')->get();
 
-        return view('content.admin.rekap-absensi.index', compact('absensi', 'absensi_pending'));
+        return view('content.admin.rekap-absensi.index', compact('absensi', 'absensi_pending', 'users', 'filterType', 'tanggalFilter', 'userIdFilter'));
     }
     public function export(Request $request)
     {
@@ -89,16 +104,30 @@ class RekapAbsensiController extends Controller
 
     public function exportExcel(Request $request)
     {
+        $filterType = $request->input('filter_type', 'daily');
         $tanggalFilter = $request->input('tanggal');
+        $userIdFilter = $request->input('user_id');
         
         $fileName = 'Rekap_Absensi';
+        
+        if ($userIdFilter) {
+            $user = User::find($userIdFilter);
+            if ($user) $fileName .= '_' . str_replace(' ', '_', $user->name);
+        }
+
         if ($tanggalFilter) {
-            $fileName .= '_' . \Carbon\Carbon::parse($tanggalFilter)->format('d_M_Y');
+            if ($filterType == 'daily') {
+                $fileName .= '_' . \Carbon\Carbon::parse($tanggalFilter)->format('d_M_Y');
+            } elseif ($filterType == 'weekly') {
+                $fileName .= '_Minggu_' . \Carbon\Carbon::parse($tanggalFilter)->format('W_Y');
+            } elseif ($filterType == 'monthly') {
+                $fileName .= '_Bulan_' . \Carbon\Carbon::parse($tanggalFilter)->format('M_Y');
+            }
         } else {
             $fileName .= '_Keseluruhan';
         }
         $fileName .= '.xlsx';
 
-        return Excel::download(new \App\Exports\AbsensiExport($tanggalFilter), $fileName);
+        return Excel::download(new \App\Exports\AbsensiExport($filterType, $tanggalFilter, $userIdFilter), $fileName);
     }
 }

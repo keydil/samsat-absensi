@@ -187,7 +187,7 @@ class AdminController extends Controller
         return view('content.admin.index', compact(
             'totalPegawai', 'hadirHariIni', 'terlambat', 'izinSakit', 'tidakHadir', 'riwayatTerbaru',
             'monthlyChartData', 'weeklyChartLabels', 'weeklyHadirData', 'weeklyTelatData', 'weeklyBolosData',
-            'topPegawai', 'bottomPegawai', 'usersWithWarnings'
+            'topPegawai', 'bottomPegawai', 'usersWithWarnings', 'pegawaiRankings'
         ));
     }
 

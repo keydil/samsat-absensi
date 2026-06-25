@@ -13,11 +13,15 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class AbsensiExport implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize, WithStyles
 {
+    protected $filterType;
     protected $tanggalFilter;
+    protected $userIdFilter;
 
-    public function __construct($tanggalFilter = null)
+    public function __construct($filterType = 'daily', $tanggalFilter = null, $userIdFilter = null)
     {
+        $this->filterType = $filterType;
         $this->tanggalFilter = $tanggalFilter;
+        $this->userIdFilter = $userIdFilter;
     }
 
     public function collection()
@@ -35,8 +39,22 @@ class AbsensiExport implements FromCollection, WithHeadings, WithMapping, Should
             ->groupBy('date', 'user_id')
             ->orderBy('date', 'desc');
 
+        if ($this->userIdFilter) {
+            $query->where('user_id', $this->userIdFilter);
+        }
+
         if ($this->tanggalFilter) {
-            $query->whereDate('created_at', $this->tanggalFilter);
+            if ($this->filterType == 'daily') {
+                $query->whereDate('date', $this->tanggalFilter);
+            } elseif ($this->filterType == 'weekly') {
+                $startOfWeek = \Carbon\Carbon::parse($this->tanggalFilter)->startOfWeek();
+                $endOfWeek = \Carbon\Carbon::parse($this->tanggalFilter)->endOfWeek();
+                $query->whereBetween('date', [$startOfWeek, $endOfWeek]);
+            } elseif ($this->filterType == 'monthly') {
+                $startOfMonth = \Carbon\Carbon::parse($this->tanggalFilter)->startOfMonth();
+                $endOfMonth = \Carbon\Carbon::parse($this->tanggalFilter)->endOfMonth();
+                $query->whereBetween('date', [$startOfMonth, $endOfMonth]);
+            }
         }
 
         return $query->get();
