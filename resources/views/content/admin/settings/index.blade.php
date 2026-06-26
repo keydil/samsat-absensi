@@ -153,14 +153,29 @@
                 </div>
             </div>
 
-            <div class="flex items-center justify-end">
-                <div id="unsaved_alert" class="hidden mr-4 text-sm font-medium text-amber-600 bg-amber-50 px-4 py-2 rounded-lg ring-1 ring-amber-200 flex items-center gap-2 transition-all">
-                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                    Ada perubahan yang belum disimpan!
+            <!-- Floating Action Bar for Save -->
+            <div id="unsaved_alert" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-11/12 max-w-4xl flex flex-col sm:flex-row items-center justify-between gap-4 bg-slate-900/95 backdrop-blur-md text-white px-6 py-4 rounded-2xl shadow-2xl ring-1 ring-white/10 animate-in slide-in-from-bottom-8">
+                <div class="flex items-center gap-4">
+                    <span class="relative flex h-4 w-4 shrink-0">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-4 w-4 bg-amber-500"></span>
+                    </span>
+                    <div>
+                        <p class="font-bold text-sm sm:text-base text-white">Ada perubahan yang belum disimpan!</p>
+                        <p class="text-xs text-slate-300 hidden sm:block mt-0.5">Pastikan Anda menyimpan pengaturan sebelum meninggalkan halaman ini.</p>
+                    </div>
                 </div>
-                <button type="submit" class="rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all">
+                <button type="submit" class="w-full sm:w-auto shrink-0 rounded-xl bg-blue-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-blue-500/30 hover:bg-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/50 transition-all flex items-center justify-center gap-2">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                    </svg>
+                    Simpan Pengaturan
+                </button>
+            </div>
+            
+            <!-- Fallback Static Save Button (Normal Flow) -->
+            <div class="flex items-center justify-end mt-4">
+                <button type="submit" class="rounded-lg bg-slate-100 px-6 py-2.5 text-sm font-bold text-slate-600 shadow-sm hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 transition-all">
                     Simpan Pengaturan
                 </button>
             </div>
