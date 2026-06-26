@@ -122,8 +122,10 @@ class AdminController extends Controller
                     if (!$hasActiveSpThisMonth || $date > $lastSpDate->format('Y-m-d')) $warningTelat++;
                 }
                 elseif (in_array($status, ['Izin', 'Sakit'])) {
-                    $userIzinSakit++;
-                    if (!$hasActiveSpThisMonth || $date > $lastSpDate->format('Y-m-d')) $warningIzinSakit++;
+                    if ($records->first()->approval_status !== 'rejected') {
+                        $userIzinSakit++;
+                        if (!$hasActiveSpThisMonth || $date > $lastSpDate->format('Y-m-d')) $warningIzinSakit++;
+                    }
                 }
             }
 

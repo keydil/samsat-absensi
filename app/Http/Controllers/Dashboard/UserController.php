@@ -179,7 +179,8 @@ class UserController extends Controller
         $query = Absen::selectRaw('
                 date,
                 user_id,
-                MAX(status) as status
+                MAX(status) as status,
+                MAX(approval_status) as approval_status
             ')
             ->groupBy('date', 'user_id');
 
@@ -207,17 +208,23 @@ class UserController extends Controller
             
             $hadir = $userAbsens->where('status', 'Hadir')->count();
             $telat = $userAbsens->where('status', 'Telat')->count();
-            $izin = $userAbsens->where('status', 'Izin')->count();
-            $sakit = $userAbsens->where('status', 'Sakit')->count();
+            
+            // Exclude rejected status from Izin and Sakit
+            $izin = $userAbsens->where('status', 'Izin')->where('approval_status', '!==', 'rejected')->count();
+            $sakit = $userAbsens->where('status', 'Sakit')->where('approval_status', '!==', 'rejected')->count();
+            
+            // Any rejected Izin/Sakit is counted as Bolos
+            $rejected = $userAbsens->whereIn('status', ['Izin', 'Sakit'])->where('approval_status', 'rejected')->count();
 
-            // We don't calculate 'Bolos' exactly here to keep it simple, but we can return the available counts
+            // We don't calculate full 'Bolos' (from empty days) here to keep it simple, but we add rejected ones as Bolos
             $summary[] = [
                 'user' => $user,
                 'hadir' => $hadir,
                 'telat' => $telat,
                 'izin' => $izin,
                 'sakit' => $sakit,
-                'total' => $hadir + $telat + $izin + $sakit
+                'bolos' => $rejected,
+                'total' => $hadir + $telat + $izin + $sakit + $rejected
             ];
         }
 

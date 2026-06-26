@@ -85,6 +85,7 @@
                                 <th class="px-6 py-4 text-center">Telat</th>
                                 <th class="px-6 py-4 text-center">Izin</th>
                                 <th class="px-6 py-4 text-center">Sakit</th>
+                                <th class="px-6 py-4 text-center">Bolos</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
@@ -120,10 +121,15 @@
                                             {{ $item['sakit'] }}
                                         </span>
                                     </td>
+                                    <td class="px-6 py-4 text-center">
+                                        <span class="inline-flex items-center justify-center h-6 w-6 rounded-full {{ $item['bolos'] > 0 ? 'bg-red-100 text-red-700 font-bold' : 'bg-slate-50 text-slate-400' }}">
+                                            {{ $item['bolos'] }}
+                                        </span>
+                                    </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="px-6 py-12 text-center text-slate-500">
+                                    <td colspan="6" class="px-6 py-12 text-center text-slate-500">
                                         Belum ada data absensi untuk periode ini.
                                     </td>
                                 </tr>
