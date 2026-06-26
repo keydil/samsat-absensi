@@ -74,17 +74,26 @@
                                     <div class="grid grid-cols-2 gap-4">
                                         <div>
                                             <label class="block text-xs font-semibold text-slate-700">Masuk - Mulai</label>
-                                            <input type="time" name="QR_SESSION_IN_START_{{ $key }}" value="{{ $settings['QR_SESSION_IN_START_'.$key] ?? '07:00' }}" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                                            <input type="time" name="QR_SESSION_IN_START_{{ $key }}" value="{{ old('QR_SESSION_IN_START_'.$key, $settings['QR_SESSION_IN_START_'.$key] ?? '07:00') }}" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                                            @error('QR_SESSION_IN_START_'.$key)
+                                                <p class="mt-1 text-[10px] text-red-500 font-medium">{{ $message }}</p>
+                                            @enderror
                                         </div>
                                         <div>
                                             <label class="block text-xs font-semibold text-slate-700">Masuk - Selesai</label>
-                                            <input type="time" name="QR_SESSION_IN_END_{{ $key }}" value="{{ $settings['QR_SESSION_IN_END_'.$key] ?? '09:00' }}" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                                            <input type="time" name="QR_SESSION_IN_END_{{ $key }}" value="{{ old('QR_SESSION_IN_END_'.$key, $settings['QR_SESSION_IN_END_'.$key] ?? '09:00') }}" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                                            @error('QR_SESSION_IN_END_'.$key)
+                                                <p class="mt-1 text-[10px] text-red-500 font-medium">{{ $message }}</p>
+                                            @enderror
                                         </div>
                                     </div>
                                     
                                     <div>
                                         <label class="block text-xs font-semibold text-slate-700">Batas Toleransi Telat (Masuk)</label>
-                                        <input type="time" name="TOLERANSI_TELAT_MASUK_{{ $key }}" value="{{ $settings['TOLERANSI_TELAT_MASUK_'.$key] ?? '08:00' }}" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                                        <input type="time" name="TOLERANSI_TELAT_MASUK_{{ $key }}" value="{{ old('TOLERANSI_TELAT_MASUK_'.$key, $settings['TOLERANSI_TELAT_MASUK_'.$key] ?? '08:00') }}" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                                        @error('TOLERANSI_TELAT_MASUK_'.$key)
+                                            <p class="mt-1 text-[10px] text-red-500 font-medium">{{ $message }}</p>
+                                        @enderror
                                     </div>
 
                                     <hr class="{{ $isToday ? 'border-blue-100' : 'border-slate-100' }}">
@@ -92,11 +101,17 @@
                                     <div class="grid grid-cols-2 gap-4">
                                         <div>
                                             <label class="block text-xs font-semibold text-slate-700">Pulang - Mulai</label>
-                                            <input type="time" name="QR_SESSION_OUT_START_{{ $key }}" value="{{ $settings['QR_SESSION_OUT_START_'.$key] ?? '15:00' }}" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                                            <input type="time" name="QR_SESSION_OUT_START_{{ $key }}" value="{{ old('QR_SESSION_OUT_START_'.$key, $settings['QR_SESSION_OUT_START_'.$key] ?? '15:00') }}" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                                            @error('QR_SESSION_OUT_START_'.$key)
+                                                <p class="mt-1 text-[10px] text-red-500 font-medium">{{ $message }}</p>
+                                            @enderror
                                         </div>
                                         <div>
                                             <label class="block text-xs font-semibold text-slate-700">Pulang - Selesai</label>
-                                            <input type="time" name="QR_SESSION_OUT_END_{{ $key }}" value="{{ $settings['QR_SESSION_OUT_END_'.$key] ?? '17:00' }}" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                                            <input type="time" name="QR_SESSION_OUT_END_{{ $key }}" value="{{ old('QR_SESSION_OUT_END_'.$key, $settings['QR_SESSION_OUT_END_'.$key] ?? '17:00') }}" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                                            @error('QR_SESSION_OUT_END_'.$key)
+                                                <p class="mt-1 text-[10px] text-red-500 font-medium">{{ $message }}</p>
+                                            @enderror
                                         </div>
                                     </div>
                                 </div>
