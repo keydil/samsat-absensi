@@ -6,12 +6,12 @@
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
                 <h1 class="text-2xl font-bold tracking-tight text-slate-900">Absensi Global</h1>
-                <p class="text-sm text-slate-500">Lihat status kehadiran rekan kerja Anda hari ini.</p>
+                <p class="text-sm text-slate-500">Lihat rekapitulasi kehadiran rekan kerja Anda.</p>
             </div>
             
             <div class="flex items-center gap-2">
                 <span class="inline-flex items-center rounded-md bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-700/10">
-                    Hanya menampilkan data umum demi menjaga privasi.
+                    Menampilkan total rekapan kehadiran per periode.
                 </span>
             </div>
         </div>
@@ -21,10 +21,21 @@
             <div class="border-b border-slate-100 bg-slate-50/50 px-6 py-4 flex flex-col sm:flex-row gap-4 items-end justify-between">
                 <form action="{{ route('user.globalHistory') }}" method="GET" class="flex flex-col sm:flex-row gap-4 items-end flex-1">
                     <div class="w-full sm:w-auto">
-                        <label class="block text-xs font-bold text-slate-500 mb-1">Pilih Tanggal</label>
+                        <label class="block text-xs font-bold text-slate-500 mb-1">Filter Berdasarkan</label>
+                        <select name="filter_type" class="w-full rounded-lg border-slate-200 text-sm focus:ring-blue-500 focus:border-blue-500">
+                            <option value="monthly" {{ request('filter_type', 'monthly') == 'monthly' ? 'selected' : '' }}>Bulanan</option>
+                            <option value="weekly" {{ request('filter_type') == 'weekly' ? 'selected' : '' }}>Mingguan</option>
+                            <option value="daily" {{ request('filter_type') == 'daily' ? 'selected' : '' }}>Harian</option>
+                            <option value="all" {{ request('filter_type') == 'all' ? 'selected' : '' }}>Keseluruhan (Dari Awal)</option>
+                        </select>
+                    </div>
+
+                    <div class="w-full sm:w-auto" id="dateFilterContainer">
+                        <label class="block text-xs font-bold text-slate-500 mb-1">Pilih Waktu</label>
                         <input 
-                            type="date" 
+                            type="{{ request('filter_type', 'monthly') == 'monthly' ? 'month' : (request('filter_type') == 'weekly' ? 'week' : 'date') }}" 
                             name="tanggal" 
+                            id="tanggalFilter"
                             class="w-full rounded-lg border-slate-200 text-sm focus:ring-blue-500 focus:border-blue-500" 
                             value="{{ $tanggalFilter }}"
                         >
@@ -38,41 +49,87 @@
                 </form>
             </div>
 
-            <div class="p-4 sm:p-6 bg-slate-50">
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    @forelse($riwayat as $item)
-                        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex items-center justify-between hover:shadow-md transition-shadow">
-                            <div class="flex items-center gap-3">
-                                <div class="h-10 w-10 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-500">
-                                    {{ substr($item->user->name ?? '?', 0, 1) }}
-                                </div>
-                                <div>
-                                    <p class="font-bold text-slate-800 text-sm">{{ $item->user->name ?? 'User Terhapus' }}</p>
-                                </div>
-                            </div>
-                            
-                            <div>
-                                @if($item->status === 'Hadir')
-                                    <span class="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-bold text-emerald-700">Hadir</span>
-                                @elseif($item->status === 'Telat')
-                                    <span class="inline-flex items-center rounded-full bg-orange-100 px-2.5 py-0.5 text-xs font-bold text-orange-700">Telat</span>
-                                @elseif($item->status === 'Izin')
-                                    <span class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-bold text-blue-700">Izin</span>
-                                @elseif($item->status === 'Sakit')
-                                    <span class="inline-flex items-center rounded-full bg-rose-100 px-2.5 py-0.5 text-xs font-bold text-rose-700">Sakit</span>
-                                @else
-                                    <span class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-bold text-slate-700">{{ $item->status }}</span>
-                                @endif
-                            </div>
-                        </div>
-                    @empty
-                        <div class="col-span-full text-center py-12 px-4 rounded-2xl border border-dashed border-slate-300 bg-white">
-                            <svg class="mx-auto h-12 w-12 text-slate-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                            </svg>
-                            <p class="text-slate-500 font-medium">Belum ada data absensi untuk tanggal ini.</p>
-                        </div>
-                    @endforelse
+            <script>
+                document.querySelector('select[name="filter_type"]').addEventListener('change', function() {
+                    const dateInput = document.getElementById('tanggalFilter');
+                    const container = document.getElementById('dateFilterContainer');
+                    if (this.value === 'all') {
+                        container.style.display = 'none';
+                        dateInput.value = '';
+                    } else {
+                        container.style.display = 'block';
+                        if (this.value === 'monthly') {
+                            dateInput.type = 'month';
+                        } else if (this.value === 'weekly') {
+                            dateInput.type = 'week';
+                        } else {
+                            dateInput.type = 'date';
+                        }
+                        dateInput.value = ''; // clear on change
+                    }
+                });
+                
+                // Initialize display logic on load
+                if(document.querySelector('select[name="filter_type"]').value === 'all') {
+                    document.getElementById('dateFilterContainer').style.display = 'none';
+                }
+            </script>
+
+            <div class="p-0 sm:p-0 bg-white">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-slate-600">
+                        <thead class="bg-slate-50 text-xs uppercase font-bold text-slate-500 border-b border-slate-200">
+                            <tr>
+                                <th class="px-6 py-4">Karyawan</th>
+                                <th class="px-6 py-4 text-center">Hadir</th>
+                                <th class="px-6 py-4 text-center">Telat</th>
+                                <th class="px-6 py-4 text-center">Izin</th>
+                                <th class="px-6 py-4 text-center">Sakit</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            @forelse($summary as $index => $item)
+                                <tr class="hover:bg-slate-50 transition-colors">
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-3">
+                                            <div class="flex h-8 w-8 items-center justify-center rounded-full font-bold bg-slate-100 text-slate-600">
+                                                #{{ $index + 1 }}
+                                            </div>
+                                            <div>
+                                                <p class="font-bold text-slate-800">{{ $item['user']->name }}</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 text-center">
+                                        <span class="inline-flex items-center justify-center h-6 w-6 rounded-full {{ $item['hadir'] > 0 ? 'bg-emerald-100 text-emerald-700 font-bold' : 'bg-slate-50 text-slate-400' }}">
+                                            {{ $item['hadir'] }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 text-center">
+                                        <span class="inline-flex items-center justify-center h-6 w-6 rounded-full {{ $item['telat'] > 0 ? 'bg-orange-100 text-orange-700 font-bold' : 'bg-slate-50 text-slate-400' }}">
+                                            {{ $item['telat'] }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 text-center">
+                                        <span class="inline-flex items-center justify-center h-6 w-6 rounded-full {{ $item['izin'] > 0 ? 'bg-blue-100 text-blue-700 font-bold' : 'bg-slate-50 text-slate-400' }}">
+                                            {{ $item['izin'] }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 text-center">
+                                        <span class="inline-flex items-center justify-center h-6 w-6 rounded-full {{ $item['sakit'] > 0 ? 'bg-rose-100 text-rose-700 font-bold' : 'bg-slate-50 text-slate-400' }}">
+                                            {{ $item['sakit'] }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="5" class="px-6 py-12 text-center text-slate-500">
+                                        Belum ada data absensi untuk periode ini.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
             </div>
             

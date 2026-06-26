@@ -173,19 +173,62 @@ class UserController extends Controller
 
     public function globalHistory(Request $request)
     {
+        $filterType = $request->input('filter_type', 'monthly'); // default monthly
         $tanggalFilter = $request->input('tanggal', date('Y-m-d'));
 
-        // Only select safe fields for privacy: date, user_id, status
-        $riwayat = Absen::selectRaw('
+        $query = Absen::selectRaw('
                 date,
                 user_id,
                 MAX(status) as status
             ')
-            ->with('user')
-            ->whereDate('date', $tanggalFilter)
-            ->groupBy('date', 'user_id')
-            ->get();
+            ->groupBy('date', 'user_id');
 
-        return view('content.karyawan.riwayat.global', compact('riwayat', 'tanggalFilter'));
+        if ($tanggalFilter) {
+            if ($filterType == 'daily') {
+                $query->whereDate('date', $tanggalFilter);
+            } elseif ($filterType == 'weekly') {
+                $startOfWeek = \Carbon\Carbon::parse($tanggalFilter)->startOfWeek();
+                $endOfWeek = \Carbon\Carbon::parse($tanggalFilter)->endOfWeek();
+                $query->whereBetween('date', [$startOfWeek, $endOfWeek]);
+            } elseif ($filterType == 'monthly') {
+                $startOfMonth = \Carbon\Carbon::parse($tanggalFilter)->startOfMonth();
+                $endOfMonth = \Carbon\Carbon::parse($tanggalFilter)->endOfMonth();
+                $query->whereBetween('date', [$startOfMonth, $endOfMonth]);
+            }
+            // If 'all', do not apply date filter
+        }
+
+        $absenRecords = $query->get();
+        $users = \App\Models\User::where('role', 'Karyawan')->get();
+
+        $summary = [];
+        foreach ($users as $user) {
+            $userAbsens = $absenRecords->where('user_id', $user->id);
+            
+            $hadir = $userAbsens->where('status', 'Hadir')->count();
+            $telat = $userAbsens->where('status', 'Telat')->count();
+            $izin = $userAbsens->where('status', 'Izin')->count();
+            $sakit = $userAbsens->where('status', 'Sakit')->count();
+
+            // We don't calculate 'Bolos' exactly here to keep it simple, but we can return the available counts
+            $summary[] = [
+                'user' => $user,
+                'hadir' => $hadir,
+                'telat' => $telat,
+                'izin' => $izin,
+                'sakit' => $sakit,
+                'total' => $hadir + $telat + $izin + $sakit
+            ];
+        }
+
+        // Sort by total desc, then name
+        usort($summary, function($a, $b) {
+            if ($a['total'] == $b['total']) {
+                return strcmp($a['user']->name, $b['user']->name);
+            }
+            return $b['total'] <=> $a['total'];
+        });
+
+        return view('content.karyawan.riwayat.global', compact('summary', 'filterType', 'tanggalFilter'));
     }
 }
