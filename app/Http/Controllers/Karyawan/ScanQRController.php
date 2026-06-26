@@ -105,6 +105,21 @@ class ScanQRController extends Controller
             return response()->json(['success' => false, 'message' => 'Kamu sudah melakukan absensi ini.']);
         }
 
+        // Logic check: Prevent Absen Pulang if Absen Masuk is missing
+        if ($qr->present == 'out_present') {
+            $hasAbsenMasuk = Absen::where('user_id', $user->id)
+                ->where('date', $qr->date)
+                ->where('present_desc_system', 'LIKE', '%Masuk%')
+                ->exists();
+
+            if (!$hasAbsenMasuk) {
+                return response()->json([
+                    'success' => false, 
+                    'message' => 'Anda belum melakukan Absen Masuk hari ini. Tidak dapat melakukan Absen Pulang.'
+                ]);
+            }
+        }
+
         $officeLat = (float) \App\Models\Setting::get('OFFICE_LAT', -6.953797);
         $officeLng = (float) \App\Models\Setting::get('OFFICE_LNG', 107.766743);
         $maxRadius = (float) \App\Models\Setting::get('OFFICE_RADIUS_METER', 100);
