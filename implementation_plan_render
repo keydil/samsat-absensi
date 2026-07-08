@@ -1,0 +1,70 @@
+# Rencana Migrasi Server & Database (Railway ke Render + External DB)
+
+Dokumen ini menjelaskan secara detail strategi perpindahan (migrasi) aplikasi Absensi dari Railway ke infrastruktur baru yang **benar-benar gratis seumur hidup**, serta menjawab semua kebingungan terkait limitasi layanan gratisan.
+
+## 1. Fakta Pahit Hosting Gratisan (Railway vs Render)
+
+Untuk memahami kenapa kita harus merancang strategi khusus, lu perlu paham model bisnis platform hosting saat ini:
+
+*   **Railway (Yang lu pake sekarang):**
+    Sistemnya *Trial Credits*. Lu dikasih modal \$5. Selama server lu nyala, saldo lu dipotong pelan-pelan. Kalau saldo abis (atau waktunya abis), **semuanya mati total** (baik kodingan web maupun databasenya). Nggak ada kata gratis seumur hidup di sini.
+*   **Render (Target kita selanjutnya):**
+    Mereka bagi layanannya jadi dua:
+    1.  **Web Service (Kodingan Laravel):** **GRATIS SEUMUR HIDUP** (limit 750 jam/bulan, cukup buat nyala 24/7 sebulan penuh). Syaratnya cuma satu: Kalo 15 menit ngga ada yang buka, webnya "tidur". Pas dibuka lagi, *loading* sekitar 30 detik buat "bangun".
+    2.  **Database PostgreSQL:** Cuma dikasih **Trial 90 Hari**. Kenapa? Karena nyimpen data (database) itu butuh biaya harddisk yang gede buat mereka. Setelah 90 hari, database lu akan **DIHAPUS OTOMATIS** kalo ngga bayar.
+
+## 2. Kenapa Ngga Pake PostgreSQL Render Aja (Cuma 90 Hari)?
+
+Lu tadi tanya: *"Kenapa alih-alih ganti aja ke Postgre nya aja, kenapa lu malah nyaranin database external (TiDB/Aiven)?"*
+
+Ada dua alasan fatal kenapa gw sangat **TIDAK MENYARANKAN** pake PostgreSQL bawakan Render:
+
+> [!WARNING]
+> **Alasan 1: Kematian Aplikasi dalam 3 Bulan**
+> Walaupun sidang lu mungkin bulan depan, portofolio ini kan pengen lu simpen seumur hidup di CV atau GitHub lu. Kalo kita pake DB Render, 3 bulan lagi datanya musnah, aplikasi lu *error 500* selamanya. Lu harus repot bikin database baru lagi nanti.
+
+> [!CAUTION]
+> **Alasan 2: Bentrok Bahasa Database (MySQL vs PostgreSQL)**
+> Saat ini kodingan Laravel lu dibangun pake pola pikir **MySQL**. Kalo kita maksa pindah ke PostgreSQL, ada banyak *Query* (terutama logika laporan, grouping, dan tanggal) yang **bakal error** karena PostgreSQL itu jauh lebih ketat (strict) dibanding MySQL. Daripada kita bongkar kodingan lagi dan nambah *bug* baru menjelang sidang, mending kita tetep pake MySQL.
+
+## 3. Solusi Terbaik: Arsitektur "Pecah Telur" (Decoupled)
+
+Biar lu punya sistem yang kebal mati dan gratis seumur hidup, kita bakal mecah aplikasi lu jadi 3 tempat terpisah yang masing-masing spesialis di bidang gratisannya:
+
+1.  **Tukang Simpen Foto (Storage):** Kita udah pake **Cloudinary** (Gratis seumur hidup).
+2.  **Tukang Simpen Kodingan & Nyalain Web (Server):** Kita bakal pake **Render Web Service** (Gratis seumur hidup, ada efek tidur 15 menit).
+3.  **Tukang Simpen Data Teks/Akun (Database):** Kita bakal pake **TiDB Serverless** (Database berjenis MySQL yang **100% Gratis seumur hidup**, ngga ada limit 90 hari, dan kecepatannya stabil).
+
+Dengan arsitektur ini, kalau Render lagi "tidur", database lu di TiDB tetep aman terjaga.
+
+## 4. Langkah-Langkah Eksekusi (Implementation Plan)
+
+Jika lu setuju dengan arsitektur di atas, berikut adalah urutan kerja gw selanjutnya:
+
+### Fase 1: Setup Database Permanen (TiDB)
+- Gw akan minta lu buat daftar akun TiDB Serverless (atau gw kasih instruksi cara bikinnya).
+- Bikin database MySQL baru di sana dan ambil "Connection String" (URL rahasia penghubung database).
+
+### Fase 2: Persiapan Render (Kodingan)
+- Bikin file khusus `render-build.sh` di Laravel. Ini ngasih tau Render cara nginstal PHP, Composer, dan nge-build tampilan Tailwind lu secara otomatis.
+- Update konfigurasi di `composer.json` buat menyesuaikan versi PHP yang dipake Render.
+
+### Fase 3: Deployment (Live)
+- Lu login ke Render, sambungin GitHub lu.
+- Masukin URL rahasia dari TiDB dan Cloudinary ke halaman rahasia (Environment Variables) di Render.
+- Klik Deploy.
+
+### Fase 4: Trik Anti-Tidur Render (Ping 14 Menit)
+- **Masalah:** Render versi gratis akan "tidur" setelah 15 menit jika tidak ada aktivitas (tidak ada yang buka web). Jika dibiarkan, karyawan pertama yang mau absen di pagi hari harus menunggu *loading* sekitar 30 detik sampai web "terbangun".
+- **Solusi (Ping Strategy):** Kita akan menggunakan layanan pihak ketiga yang 100% gratis seperti **cron-job.org** atau **UptimeRobot**.
+- **Cara Kerja:** Layanan ini akan diatur layaknya robot untuk "mengetuk pintu" (membuka URL web lu) secara otomatis setiap **14 menit sekali**, 24 jam non-stop. Karena ada yang ngetuk sebelum batas 15 menit habis, server Render akan mengira web tersebut sedang dipakai terus-menerus, sehingga aplikasinya akan **Standby & Ngebut 24 Jam Full** (tidak akan pernah tidur).
+- **Eksekusi:** Setelah web beres di-deploy dan URL-nya dapat, kita tinggal daftarin URL tersebut ke robot ping ini. Beres!
+
+## Open Questions untuk Lu (Mohon Dijawab)
+
+> [!IMPORTANT]
+> 1. Apakah lu udah punya gambaran yang jelas sekarang kenapa kita harus mecah Server dan Databasenya?
+> 2. Lu pilih jalur database yang mana? **TiDB Serverless (MySQL / Jalur Aman)** atau **Supabase (PostgreSQL / Jalur Pro)**?
+> 3. Apakah lu siap untuk mendaftar akun database tersebut pake email Google lu? (Nanti gw tuntun *step-by-step*).
+
+Tolong konfirmasi kalo penjelasan ini udah masuk akal, biar kita langsung gas eksekusi Fase 1!
