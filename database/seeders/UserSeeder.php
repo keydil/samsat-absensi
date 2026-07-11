@@ -36,5 +36,16 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('password123'),
             ]
         );
+        User::firstOrCreate(
+            ['code_name' => 'KPL9999999'],
+            [
+                'username' => 'kepala123',
+                'name' => 'Bapak Kepala Kantor',
+                'email' => 'kepala@samsat.go.id',
+                'phone' => '6281112223334',
+                'role' => 'Kepala',
+                'password' => Hash::make('password123'),
+            ]
+        );
     }
 }

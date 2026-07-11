@@ -14,7 +14,7 @@ class RoleUser
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
-    public function handle(Request $request, Closure $next, $role): Response
+    public function handle(Request $request, Closure $next, ...$roles): Response
     {
         // Belum login → kembalikan ke login dengan pesan
         if (!Auth::check()) {
@@ -26,7 +26,7 @@ class RoleUser
         $user = Auth::user();
 
         // Jika role sesuai → lanjutkan request
-        if ($user->role === $role) {
+        if (in_array($user->role, $roles)) {
             return $next($request);
         }
 

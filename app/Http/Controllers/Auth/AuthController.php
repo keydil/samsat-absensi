@@ -43,11 +43,11 @@ class AuthController extends Controller
     {
         $dataUser = Auth::user();
 
-        if (Auth::user()->role == 'Admin') {
+        if (Auth::user()->role == 'Admin' || Auth::user()->role == 'Kepala') {
             return redirect('dashboard/admin')->with('info', 'Selamat datang ' . $dataUser->name);
         } elseif (Auth::user()->role == 'Karyawan') {
             return redirect('dashboard/karyawan')->with('info', 'Selamat datang ' . $dataUser->name);
-        } 
+        }
     }
 
     public function logout()

@@ -2,7 +2,7 @@
     <li class="menu-header">Beranda</li>
 
     <!-- Route Dashboard Berdasarkan Role-->
-    @if (Auth::user()->role == 'Admin')
+    @if (Auth::user()->role == 'Admin' || Auth::user()->role == 'Kepala')
         <li class="{{ request()->routeIs('dashboard.admin') ? 'active' : '' }}">
             <a href="{{ route('dashboard.admin') }}" class="nav-link">
                 <i class="fas fa-fire"></i>
@@ -20,26 +20,34 @@
     <li class="menu-header">Menu Navigasi</li>
 
     <!-- Menu Navigasi User Berdasarkan Role -->
-    @if (Auth::user()->role == 'Admin')
-        <li @class(['active' => request()->routeIs('admin.dataUser')])>
-            <a class="nav-link" href="{{ route('admin.dataUser') }}">
-                <i class="fas fa-user"></i> 
-                <span>Data User</span>
-            </a>
-        </li>
-         <li @class(['active' => request()->routeIs('admin.generate-qr') ||  request()->routeIs('admin.generate-qr.show')])>
-            <a class="nav-link" href="{{ route('admin.generate-qr') }}">
-                <i class="fas fa-qrcode"></i> 
-                <span>QR-Code Absensi</span>
-            </a>
-        </li>
-        <li @class(['active' => request()->routeIs('login')])>
-            <a class="nav-link" href="">
+    @if (Auth::user()->role == 'Admin' || Auth::user()->role == 'Kepala')
+        @if (Auth::user()->role == 'Admin')
+            <li @class(['active' => request()->routeIs('admin.dataUser')])>
+                <a class="nav-link" href="{{ route('admin.dataUser') }}">
+                    <i class="fas fa-user"></i> 
+                    <span>Data User</span>
+                </a>
+            </li>
+            <li @class(['active' => request()->routeIs('admin.generate-qr') ||  request()->routeIs('admin.generate-qr.show')])>
+                <a class="nav-link" href="{{ route('admin.generate-qr') }}">
+                    <i class="fas fa-qrcode"></i> 
+                    <span>QR-Code Absensi</span>
+                </a>
+            </li>
+            <li @class(['active' => request()->routeIs('admin.settings')])>
+                <a class="nav-link" href="{{ route('admin.settings') }}">
+                    <i class="fas fa-cog"></i> 
+                    <span>Pengaturan</span>
+                </a>
+            </li>
+        @endif
+        <li @class(['active' => request()->routeIs('admin.rekap-absensi')])>
+            <a class="nav-link" href="{{ route('admin.rekap-absensi') }}">
                 <i class="far fa-square"></i> 
                 <span>Rekap Absen</span>
             </a>
         </li>
-    @else
+    @elseif (Auth::user()->role == 'Karyawan')
         <li @class(['active' => request()->routeIs('user.scanQR')])>
             <a class="nav-link" href="{{ route('user.scanQR') }}">
                 <i class="fas fa-qrcode"></i> 

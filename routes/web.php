@@ -109,10 +109,10 @@ Route::post('login', [AuthController::class, 'login'])->name('auth.login');
 // Route Dashboard Admin & User
 Route::get('dashboard/admin', [AdminController::class, 'index'])
     ->name('dashboard.admin')
-    ->middleware('RoleUser:Admin');
+    ->middleware('RoleUser:Admin,Kepala');
 Route::post('dashboard/admin/proses-sp/{id}', [AdminController::class, 'prosesSP'])
     ->name('dashboard.admin.proses-sp')
-    ->middleware('RoleUser:Admin');
+    ->middleware('RoleUser:Admin,Kepala');
 Route::get('dashboard/karyawan', [UserController::class, 'index'])
     ->name('dashboard.user')
     ->middleware('RoleUser:Karyawan');
@@ -135,17 +135,19 @@ Route::middleware(['RoleUser:Admin'])->group(function () {
     // API: Auto-generate & fetch QR aktif
     Route::get('/api/qr/current-active', [GenerateQRController::class, 'currentActive'])->name('api.qr.current-active');
 
-    // Route Rekap Absensi
+    // Route Pengaturan (Settings)
+    Route::get('/dashboard/admin/settings', [\App\Http\Controllers\Admin\SettingController::class, 'index'])->name('admin.settings');
+    Route::post('/dashboard/admin/settings', [\App\Http\Controllers\Admin\SettingController::class, 'update'])->name('admin.settings.update');
+});
+
+Route::middleware(['RoleUser:Admin,Kepala'])->group(function () {
+    // Route Rekap Absensi (Admin dan Kepala Boleh Akses, Khusus Kepala Nanti di Controller ACC Izinnya)
     Route::get('/dashboard/admin/rekap-absensi', [RekapAbsensiController::class, 'index'])->name('admin.rekap-absensi');
     Route::get('/dashboard/admin/rekap-absensi/export-excel', [RekapAbsensiController::class, 'exportExcel'])->name('admin.rekap-absensi.export');
     Route::delete('/dashboard/admin/rekap-absensi/clear-old', [RekapAbsensiController::class, 'clearOldData'])->name('admin.rekap-absensi.clear-old');
     Route::delete('/dashboard/admin/rekap-absensi/{user_id}/{date}', [RekapAbsensiController::class, 'destroy'])->name('admin.rekap-absensi.destroy');
     Route::post('/dashboard/admin/rekap-absensi/approve/{id}', [RekapAbsensiController::class, 'approve'])->name('admin.rekap-absensi.approve');
     Route::post('/dashboard/admin/rekap-absensi/reject/{id}', [RekapAbsensiController::class, 'reject'])->name('admin.rekap-absensi.reject');
-
-    // Route Pengaturan (Settings)
-    Route::get('/dashboard/admin/settings', [\App\Http\Controllers\Admin\SettingController::class, 'index'])->name('admin.settings');
-    Route::post('/dashboard/admin/settings', [\App\Http\Controllers\Admin\SettingController::class, 'update'])->name('admin.settings.update');
 });
 
 Route::middleware(['RoleUser:Karyawan'])->group(function () {
