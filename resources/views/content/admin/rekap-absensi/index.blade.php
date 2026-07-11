@@ -394,6 +394,9 @@
 
             <!-- Footer (Action Buttons) -->
             <div class="bg-slate-50 px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-3 shrink-0">
+                <a href="#" id="modalBtnNewTab" target="_blank" class="rounded-lg px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 hover:bg-blue-100 transition-colors mr-auto">
+                    Buka di Tab Baru ↗
+                </a>
                 <button type="button" onclick="closeBuktiModal()" class="rounded-lg px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-300 hover:bg-slate-50 transition-colors">
                     Tutup
                 </button>
@@ -416,6 +419,7 @@
         // Modal Bukti Logic
         function openBuktiModal(imgUrl, absensiId, userName, statusType) {
             document.getElementById('modalImage').src = imgUrl;
+            document.getElementById('modalBtnNewTab').href = imgUrl;
             document.getElementById('modalTitle').textContent = `Bukti Surat ${statusType}`;
             document.getElementById('modalSubtitle').textContent = `Pegawai: ${userName}`;
             document.getElementById('modalIcon').textContent = statusType === 'Sakit' ? '🏥' : '📝';
