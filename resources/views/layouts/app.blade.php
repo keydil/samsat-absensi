@@ -50,8 +50,9 @@
 
         <nav class="flex-1 overflow-y-auto px-3 py-4 space-y-1 no-scrollbar">
 
-            @if (Auth::user()->role == 'Admin')
-                <p class="px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 mt-2">Administrator
+            @if (Auth::user()->role == 'Admin' || Auth::user()->role == 'Kepala')
+                <p class="px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 mt-2">
+                    {{ Auth::user()->role == 'Admin' ? 'Administrator' : 'Kepala Kantor' }}
                 </p>
 
                 <a href="{{ route('dashboard.admin') }}"
@@ -63,6 +64,7 @@
                     Dashboard
                 </a>
 
+                @if (Auth::user()->role == 'Admin')
                 <a href="{{ route('admin.dataUser') }}"
                     class="flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-medium transition-all {{ request()->routeIs('admin.dataUser*') ? 'bg-blue-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -80,6 +82,7 @@
                     </svg>
                     QR Code Absen
                 </a>
+                @endif
 
                 <a href="{{ route('admin.rekap-absensi') }}"
                     class="flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-medium transition-all {{ request()->routeIs('admin.rekap-absensi*') ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
@@ -90,6 +93,7 @@
                     Rekap Absensi
                 </a>
 
+                @if (Auth::user()->role == 'Admin')
                 <a href="{{ route('admin.settings') }}"
                     class="flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-medium transition-all {{ request()->routeIs('admin.settings*') ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -98,6 +102,7 @@
                     </svg>
                     Pengaturan
                 </a>
+                @endif
             @endif
 
 
