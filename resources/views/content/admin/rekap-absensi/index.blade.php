@@ -388,8 +388,15 @@
             </div>
             
             <!-- Body (Image) -->
-            <div class="overflow-y-auto p-4 flex-1 flex items-center justify-center bg-slate-100/50">
-                <img id="modalImage" src="" alt="Bukti Surat" class="max-w-full max-h-[60vh] object-contain rounded-lg shadow-sm border border-slate-200">
+            <div class="overflow-y-auto p-4 flex-1 flex flex-col items-center justify-center bg-slate-100/50 min-h-[300px] w-full relative">
+                <!-- Loading State -->
+                <div id="modalLoading" class="hidden flex-col items-center justify-center absolute inset-0 bg-slate-100/80 z-10">
+                    <svg class="animate-spin h-8 w-8 text-blue-600 mb-2" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    <span class="text-sm text-slate-500 font-medium">Memuat Dokumen...</span>
+                </div>
+                
+                <img id="modalImage" src="" alt="Bukti Surat" class="max-w-full max-h-[60vh] object-contain rounded-lg shadow-sm border border-slate-200 hidden">
+                <iframe id="modalPdf" src="" class="hidden w-full h-[60vh] rounded-lg shadow-sm border border-slate-200 bg-white"></iframe>
             </div>
 
             <!-- Footer (Action Buttons) -->
@@ -418,7 +425,18 @@
     <script>
         // Modal Bukti Logic
         function openBuktiModal(imgUrl, absensiId, userName, statusType) {
-            document.getElementById('modalImage').src = imgUrl;
+            const img = document.getElementById('modalImage');
+            const pdf = document.getElementById('modalPdf');
+            const loading = document.getElementById('modalLoading');
+            
+            // Reset state
+            img.classList.add('hidden');
+            pdf.classList.add('hidden');
+            loading.classList.remove('hidden');
+            loading.classList.add('flex');
+            img.src = '';
+            pdf.src = '';
+
             document.getElementById('modalBtnNewTab').href = imgUrl;
             document.getElementById('modalTitle').textContent = `Bukti Surat ${statusType}`;
             document.getElementById('modalSubtitle').textContent = `Pegawai: ${userName}`;
@@ -432,6 +450,31 @@
             modal.classList.remove('hidden');
             modal.classList.add('flex');
             document.body.style.overflow = 'hidden';
+
+            // Smart Document Loader
+            if (imgUrl.toLowerCase().includes('.pdf')) {
+                // Render PDF pake Google Docs Viewer (Support Mobile)
+                pdf.src = `https://docs.google.com/gview?url=${encodeURIComponent(imgUrl)}&embedded=true`;
+                pdf.onload = () => { 
+                    loading.classList.add('hidden'); loading.classList.remove('flex'); 
+                    pdf.classList.remove('hidden'); 
+                };
+            } else {
+                // Coba render sebagai gambar
+                img.src = imgUrl;
+                img.onload = () => { 
+                    loading.classList.add('hidden'); loading.classList.remove('flex'); 
+                    img.classList.remove('hidden'); 
+                };
+                img.onerror = () => {
+                    // Kalo gambar gagal diload (mungkin PDF tanpa ekstensi), fallback ke PDF Viewer
+                    pdf.src = `https://docs.google.com/gview?url=${encodeURIComponent(imgUrl)}&embedded=true`;
+                    pdf.onload = () => { 
+                        loading.classList.add('hidden'); loading.classList.remove('flex'); 
+                        pdf.classList.remove('hidden'); 
+                    };
+                };
+            }
         }
 
         function closeBuktiModal() {
