@@ -431,6 +431,11 @@
             const btnApprove = document.getElementById('modalBtnApprove');
             const btnReject = document.getElementById('modalBtnReject');
             
+            // Reset listeners to prevent leaks from previous clicks
+            img.onload = null;
+            img.onerror = null;
+            pdf.onload = null;
+            
             // Reset state
             img.classList.add('hidden');
             pdf.classList.add('hidden');
