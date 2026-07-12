@@ -200,10 +200,10 @@
 
                                                 @if($item->bukti_surat)
                                                     <div class="pr-2">
-                                                        <a href="{{ $item->bukti_surat }}" target="_blank" class="group flex items-center gap-2 rounded-lg bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm ring-1 ring-inset ring-slate-200 transition-all hover:bg-slate-50 hover:ring-slate-300">
+                                                        <button type="button" onclick="openBuktiModal('{{ $item->bukti_surat }}', '{{ $item->id }}', '{{ addslashes($item->user->name ?? 'User Terhapus') }}', '{{ $item->status }}', false)" class="group flex items-center gap-2 rounded-lg bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm ring-1 ring-inset ring-slate-200 transition-all hover:bg-slate-50 hover:ring-slate-300">
                                                             <svg class="h-4 w-4 text-slate-400 transition-colors group-hover:text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
                                                             Cek Dokumen
-                                                        </a>
+                                                        </button>
                                                     </div>
                                                 @endif
                                             </div>
@@ -424,10 +424,12 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         // Modal Bukti Logic
-        function openBuktiModal(imgUrl, absensiId, userName, statusType) {
+        function openBuktiModal(imgUrl, absensiId, userName, statusType, isPending = true) {
             const img = document.getElementById('modalImage');
             const pdf = document.getElementById('modalPdf');
             const loading = document.getElementById('modalLoading');
+            const btnApprove = document.getElementById('modalBtnApprove');
+            const btnReject = document.getElementById('modalBtnReject');
             
             // Reset state
             img.classList.add('hidden');
@@ -442,9 +444,20 @@
             document.getElementById('modalSubtitle').textContent = `Pegawai: ${userName}`;
             document.getElementById('modalIcon').textContent = statusType === 'Sakit' ? '🏥' : '📝';
             
-            // Re-bind actions
-            document.getElementById('modalBtnApprove').onclick = () => { closeBuktiModal(); confirmApprove(absensiId); };
-            document.getElementById('modalBtnReject').onclick = () => { closeBuktiModal(); confirmReject(absensiId); };
+            // Action Buttons Logic (Only show Approve/Reject if it's pending)
+            if (isPending) {
+                btnApprove.classList.remove('hidden');
+                btnApprove.classList.add('flex');
+                btnReject.classList.remove('hidden');
+                btnReject.classList.add('flex');
+                btnApprove.onclick = () => { closeBuktiModal(); confirmApprove(absensiId); };
+                btnReject.onclick = () => { closeBuktiModal(); confirmReject(absensiId); };
+            } else {
+                btnApprove.classList.add('hidden');
+                btnApprove.classList.remove('flex');
+                btnReject.classList.add('hidden');
+                btnReject.classList.remove('flex');
+            }
             
             const modal = document.getElementById('buktiModal');
             modal.classList.remove('hidden');
