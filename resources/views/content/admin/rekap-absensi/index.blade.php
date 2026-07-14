@@ -506,14 +506,23 @@
             document.body.style.overflow = '';
             document.getElementById('modalImage').src = '';
         }
-        // Notifikasi Sukses dari Controller
+        // Notifikasi Sukses dari Controller (UX Toast)
         @if(session('success'))
-            Swal.fire({
-                icon: 'success',
-                title: 'Berhasil',
-                text: '{{ session("success") }}',
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
                 timer: 3000,
-                showConfirmButton: false
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.addEventListener('mouseenter', Swal.stopTimer)
+                    toast.addEventListener('mouseleave', Swal.resumeTimer)
+                }
+            });
+
+            Toast.fire({
+                icon: 'success',
+                title: '{{ session("success") }}'
             });
         @endif
 

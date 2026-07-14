@@ -14,11 +14,7 @@
             <p class="text-sm text-slate-500">Konfigurasi jadwal absensi dan geofencing kantor.</p>
         </div>
 
-        @if(session('success'))
-            <div class="rounded-lg bg-emerald-50 p-4 text-emerald-800 ring-1 ring-emerald-200">
-                <p class="text-sm font-medium">{{ session('success') }}</p>
-            </div>
-        @endif
+        {{-- Notifikasi akan ditangani oleh SweetAlert Toast di script bawah --}}
 
         <form action="{{ route('admin.settings.update') }}" method="POST" class="space-y-6">
             @csrf
@@ -204,6 +200,26 @@
             fillOpacity: 0.2,
             radius: initRadius
         }).addTo(map);
+
+        // UX Toast Notification untuk Feedback Berhasil
+        @if(session('success'))
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.addEventListener('mouseenter', Swal.stopTimer)
+                    toast.addEventListener('mouseleave', Swal.resumeTimer)
+                }
+            });
+
+            Toast.fire({
+                icon: 'success',
+                title: '{{ session("success") }}'
+            });
+        @endif
 
         // Unsaved changes detection
         function showUnsavedWarning() {
