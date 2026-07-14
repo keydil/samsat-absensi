@@ -286,7 +286,9 @@
                                 <th class="px-6 py-4">Tanggal Pengajuan</th>
                                 <th class="px-6 py-4">Status & Keterangan</th>
                                 <th class="px-6 py-4 text-center">Bukti Surat</th>
-                                <th class="px-6 py-4 text-center">Aksi (Persetujuan)</th>
+                                @if(Auth::user()->role == 'Kepala')
+                                    <th class="px-6 py-4 text-center">Aksi (Persetujuan)</th>
+                                @endif
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-200">
@@ -317,13 +319,14 @@
                                     </td>
                                     <td class="px-6 py-4 text-center">
                                         @if($pending->bukti_surat)
-                                            <button type="button" onclick="openBuktiModal('{{ $pending->bukti_surat }}', '{{ $pending->id }}', '{{ addslashes($pending->user->name ?? 'User Terhapus') }}', '{{ $pending->status }}')" class="inline-flex items-center gap-1 rounded bg-white px-3 py-1.5 text-xs font-semibold text-blue-600 shadow-sm ring-1 ring-inset ring-blue-300 hover:bg-blue-50 transition">
+                                            <button type="button" onclick="openBuktiModal('{{ $pending->bukti_surat }}', '{{ $pending->id }}', '{{ addslashes($pending->user->name ?? 'User Terhapus') }}', '{{ $pending->status }}', {{ Auth::user()->role == 'Kepala' ? 'true' : 'false' }})" class="inline-flex items-center gap-1 rounded bg-white px-3 py-1.5 text-xs font-semibold text-blue-600 shadow-sm ring-1 ring-inset ring-blue-300 hover:bg-blue-50 transition">
                                                 🖼️ Cek Surat
                                             </button>
                                         @else
                                             <span class="text-xs text-slate-400">Tidak ada file</span>
                                         @endif
                                     </td>
+                                    @if(Auth::user()->role == 'Kepala')
                                     <td class="px-6 py-4 text-center">
                                         <div class="flex items-center justify-center gap-2">
                                             {{-- Form Approve --}}
@@ -343,10 +346,11 @@
                                             </form>
                                         </div>
                                     </td>
+                                    @endif
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="px-6 py-12 text-center text-slate-500">
+                                    <td colspan="{{ Auth::user()->role == 'Kepala' ? '5' : '4' }}" class="px-6 py-12 text-center text-slate-500">
                                         <div class="flex flex-col items-center justify-center">
                                             <svg class="h-12 w-12 text-slate-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
