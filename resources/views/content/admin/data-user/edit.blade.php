@@ -1,79 +1,140 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="space-y-6">
-    <div>
-        <h1 class="text-2xl font-bold tracking-tight text-slate-900">Edit Pegawai</h1>
-        <p class="text-sm text-slate-500">Perbarui data pegawai di bawah ini.</p>
+<div class="max-w-4xl mx-auto space-y-6">
+    
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold tracking-tight text-slate-900">Edit Pegawai</h1>
+            <p class="text-sm text-slate-500">Perbarui data pegawai di bawah ini.</p>
+        </div>
+        <a href="{{ route('admin.dataUser') }}" class="text-sm font-medium text-slate-500 hover:text-slate-700 transition-colors">
+            &larr; Kembali
+        </a>
     </div>
 
-    @if ($errors->any())
-        <div class="p-4 text-sm text-red-800 rounded-lg bg-red-50 border border-red-200">
-            <ul class="list-disc pl-5">
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
-
     <div class="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-        <div class="border-b border-slate-100 bg-slate-50/50 px-6 py-4">
-            <h3 class="font-semibold text-slate-800">Form Edit Pegawai</h3>
-        </div>
-        <form action="{{ route('admin.dataUser.update', $user) }}" method="POST" class="p-6 space-y-5">
+        <form action="{{ route('admin.dataUser.update', $user) }}" method="POST" class="p-6 space-y-6" x-data="{ isSubmitting: false }" @submit="isSubmitting = true">
             @csrf
             @method('PUT')
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div>
+
+            <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                
+                <div class="col-span-2">
                     <label class="block text-sm font-semibold text-slate-700 mb-1">Nama Lengkap</label>
-                    <input type="text" name="name" value="{{ old('name', $user->name) }}"
-                        class="w-full rounded-lg border-slate-200 bg-slate-50 px-3 py-2.5 text-slate-700" required>
+                    <div class="relative">
+                        <input type="text" name="name" value="{{ old('name', $user->name) }}" class="w-full rounded-lg @error('name') border-rose-300 text-rose-900 placeholder-rose-300 focus:border-rose-500 focus:ring-rose-500 bg-rose-50 pr-10 @else border-slate-200 focus:border-blue-500 focus:ring-blue-500 @enderror transition-all" required>
+                        @error('name')
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                            <svg class="h-5 w-5 text-rose-500" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0110 5zm0 10a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" /></svg>
+                        </div>
+                        @enderror
+                    </div>
+                    @error('name')
+                        <p class="text-xs font-medium text-rose-500 mt-1.5">{{ $message }}</p>
+                    @enderror
                 </div>
+
                 <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">Username</label>
-                    <input type="text" name="username" value="{{ old('username', $user->username) }}"
-                        class="w-full rounded-lg border-slate-200 bg-slate-50 px-3 py-2.5 text-slate-700" required>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Username / NIP</label>
+                    <div class="relative">
+                        <input type="text" name="username" value="{{ old('username', $user->username) }}" class="w-full rounded-lg @error('username') border-rose-300 text-rose-900 placeholder-rose-300 focus:border-rose-500 focus:ring-rose-500 bg-rose-50 pr-10 @else border-slate-200 focus:border-blue-500 focus:ring-blue-500 @enderror transition-all" required>
+                        @error('username')
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                            <svg class="h-5 w-5 text-rose-500" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0110 5zm0 10a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" /></svg>
+                        </div>
+                        @enderror
+                    </div>
+                    @error('username')
+                        <p class="text-xs font-medium text-rose-500 mt-1.5">{{ $message }}</p>
+                    @enderror
                 </div>
+
                 <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">Kode Pegawai</label>
-                    <input type="text" name="code_name" value="{{ old('code_name', $user->code_name) }}"
-                        class="w-full rounded-lg border-slate-200 bg-slate-50 px-3 py-2.5 text-slate-700" required>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Kode User (Unik)</label>
+                    <div class="relative">
+                        <input type="text" name="code_name" value="{{ old('code_name', $user->code_name) }}" class="w-full rounded-lg @error('code_name') border-rose-300 text-rose-900 placeholder-rose-300 focus:border-rose-500 focus:ring-rose-500 bg-rose-50 pr-10 @else border-slate-200 focus:border-blue-500 focus:ring-blue-500 @enderror transition-all" required>
+                        @error('code_name')
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                            <svg class="h-5 w-5 text-rose-500" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0110 5zm0 10a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" /></svg>
+                        </div>
+                        @enderror
+                    </div>
+                    @error('code_name')
+                        <p class="text-xs font-medium text-rose-500 mt-1.5">{{ $message }}</p>
+                    @enderror
                 </div>
+
                 <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">Email</label>
-                    <input type="email" name="email" value="{{ old('email', $user->email) }}"
-                        class="w-full rounded-lg border-slate-200 bg-slate-50 px-3 py-2.5 text-slate-700" required>
-                </div>
-                <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">No. HP (WhatsApp)</label>
-                    <input type="text" name="phone" value="{{ old('phone', $user->phone) }}"
-                        class="w-full rounded-lg border-slate-200 bg-slate-50 px-3 py-2.5 text-slate-700">
-                </div>
-                <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">Role</label>
-                    <select name="role" class="w-full rounded-lg border-slate-200 bg-slate-50 px-3 py-2.5 text-slate-700" required>
-                        <option value="Admin" {{ $user->role == 'Admin' ? 'selected' : '' }}>Admin</option>
-                        <option value="Karyawan" {{ $user->role == 'Karyawan' ? 'selected' : '' }}>Karyawan</option>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Jabatan / Role</label>
+                    <select name="role" class="w-full rounded-lg @error('role') border-rose-300 text-rose-900 focus:border-rose-500 focus:ring-rose-500 bg-rose-50 @else border-slate-200 focus:border-blue-500 focus:ring-blue-500 @enderror transition-all cursor-pointer">
+                        <option value="Karyawan" {{ old('role', $user->role) == 'Karyawan' ? 'selected' : '' }}>Pegawai Biasa</option>
+                        <option value="Admin" {{ old('role', $user->role) == 'Admin' ? 'selected' : '' }}>Administrator</option>
+                        <option value="Kepala" {{ old('role', $user->role) == 'Kepala' ? 'selected' : '' }}>Kepala Kantor</option>
                     </select>
+                    @error('role')
+                        <p class="text-xs font-medium text-rose-500 mt-1.5">{{ $message }}</p>
+                    @enderror
                 </div>
-                <div class="md:col-span-2">
+
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Nomor WhatsApp</label>
+                    <div class="relative">
+                        <input type="number" name="phone" value="{{ old('phone', $user->phone) }}" class="w-full rounded-lg @error('phone') border-rose-300 text-rose-900 placeholder-rose-300 focus:border-rose-500 focus:ring-rose-500 bg-rose-50 pr-10 @else border-slate-200 focus:border-blue-500 focus:ring-blue-500 @enderror transition-all" required>
+                        @error('phone')
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                            <svg class="h-5 w-5 text-rose-500" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0110 5zm0 10a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" /></svg>
+                        </div>
+                        @enderror
+                    </div>
+                    @error('phone')
+                        <p class="text-xs font-medium text-rose-500 mt-1.5">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Alamat Email</label>
+                    <div class="relative">
+                        <input type="email" name="email" value="{{ old('email', $user->email) }}" class="w-full rounded-lg @error('email') border-rose-300 text-rose-900 placeholder-rose-300 focus:border-rose-500 focus:ring-rose-500 bg-rose-50 pr-10 @else border-slate-200 focus:border-blue-500 focus:ring-blue-500 @enderror transition-all" required>
+                        @error('email')
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                            <svg class="h-5 w-5 text-rose-500" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0110 5zm0 10a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" /></svg>
+                        </div>
+                        @enderror
+                    </div>
+                    @error('email')
+                        <p class="text-xs font-medium text-rose-500 mt-1.5">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div x-data="{ show: false }" class="col-span-2 md:col-span-1">
                     <label class="block text-sm font-semibold text-slate-700 mb-1">
-                        Password Baru <span class="font-normal text-slate-400">(kosongkan jika tidak diubah)</span>
+                        Password Baru <span class="font-normal text-slate-400 text-xs ml-1">(kosongkan jika tidak diubah)</span>
                     </label>
-                    <input type="password" name="password"
-                        class="w-full rounded-lg border-slate-200 bg-slate-50 px-3 py-2.5 text-slate-700"
-                        placeholder="Minimal 6 karakter">
+                    <div class="relative">
+                        <input x-bind:type="show ? 'text' : 'password'" name="password" class="w-full rounded-lg @error('password') border-rose-300 text-rose-900 placeholder-rose-300 focus:border-rose-500 focus:ring-rose-500 bg-rose-50 pr-10 @else border-slate-200 focus:border-blue-500 focus:ring-blue-500 pr-10 @enderror transition-all" placeholder="Minimal 6 karakter">
+                        <button type="button" @click="show = !show" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 transition-colors">
+                            <svg x-show="!show" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                            <svg x-show="show" x-cloak class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>
+                        </button>
+                    </div>
+                    @error('password')
+                        <p class="text-xs font-medium text-rose-500 mt-1.5">{{ $message }}</p>
+                    @enderror
                 </div>
             </div>
-            <div class="flex justify-end gap-3 pt-2">
-                <a href="{{ route('admin.dataUser') }}"
-                    class="inline-flex items-center px-5 py-2.5 rounded-lg border border-slate-200 text-sm font-medium text-slate-700 hover:bg-slate-50 transition">
-                    Batal
-                </a>
-                <button type="submit"
-                    class="inline-flex items-center px-5 py-2.5 rounded-lg bg-blue-600 text-sm font-bold text-white shadow-md shadow-blue-500/20 hover:bg-blue-700 transition">
-                    Simpan Perubahan
+
+            <div class="pt-4 border-t border-slate-100 flex justify-end gap-3">
+                <a href="{{ route('admin.dataUser') }}" class="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 rounded-lg transition-colors">Batal</a>
+                <button type="submit" x-bind:disabled="isSubmitting" class="px-6 py-2 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-70 disabled:cursor-not-allowed rounded-lg shadow-lg shadow-blue-500/30 transition-all hover:-translate-y-0.5">
+                    <span x-show="!isSubmitting">Simpan Perubahan</span>
+                    <span x-show="isSubmitting" class="flex items-center justify-center gap-2" x-cloak>
+                        <svg class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Menyimpan...
+                    </span>
                 </button>
             </div>
         </form>

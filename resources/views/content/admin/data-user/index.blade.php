@@ -135,6 +135,27 @@
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        // UX Toast Notification untuk Feedback Berhasil
+        @if(session('success'))
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.addEventListener('mouseenter', Swal.stopTimer)
+                    toast.addEventListener('mouseleave', Swal.resumeTimer)
+                }
+            });
+
+            Toast.fire({
+                icon: 'success',
+                title: '{{ session('success') }}'
+            });
+        @endif
+
+        // UX SweetAlert2 untuk Konfirmasi Hapus
         document.querySelectorAll('.form-delete').forEach(form => {
             form.addEventListener('submit', function(e) {
                 e.preventDefault();
@@ -147,7 +168,11 @@
                     confirmButtonColor: '#ef4444',
                     cancelButtonColor: '#94a3b8',
                     confirmButtonText: 'Ya, Hapus!',
-                    cancelButtonText: 'Batal'
+                    cancelButtonText: 'Batal',
+                    customClass: {
+                        confirmButton: 'rounded-lg shadow-md',
+                        cancelButton: 'rounded-lg'
+                    }
                 }).then((result) => {
                     if (result.isConfirmed) {
                         this.submit();
