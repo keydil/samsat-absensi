@@ -27,9 +27,22 @@ class DataUserController extends Controller
             'username'  => 'required|string|unique:users,username',
             'code_name' => 'required|string|unique:users,code_name',
             'email'     => 'required|email|unique:users,email',
-            'phone'     => 'nullable|string',
-            'role'      => 'required|in:Admin,Karyawan',
+            'phone'     => 'required|string|min:10|max:15',
+            'role'      => 'required|in:Admin,Karyawan,Kepala',
             'password'  => 'required|string|min:6',
+        ], [
+            'name.required' => 'Nama lengkap wajib diisi.',
+            'username.required' => 'NIP / Username wajib diisi.',
+            'username.unique' => 'NIP / Username ini sudah terdaftar di sistem.',
+            'code_name.required' => 'Kode User wajib diisi.',
+            'code_name.unique' => 'Kode User ini sudah dipakai, gunakan kode lain.',
+            'email.required' => 'Email wajib diisi.',
+            'email.unique' => 'Email ini sudah terdaftar.',
+            'phone.required' => 'Nomor WA wajib diisi untuk keperluan komunikasi HRD.',
+            'phone.min' => 'Nomor WA minimal 10 digit angka.',
+            'role.required' => 'Jabatan wajib dipilih.',
+            'password.required' => 'Password wajib diisi.',
+            'password.min' => 'Password minimal 6 karakter.',
         ]);
 
         User::create([
@@ -37,7 +50,7 @@ class DataUserController extends Controller
             'username'  => $request->username,
             'code_name' => $request->code_name,
             'email'     => $request->email,
-            'phone'     => $request->phone ?? '-',
+            'phone'     => $request->phone,
             'role'      => $request->role,
             'password'  => Hash::make($request->password),
         ]);
@@ -57,9 +70,21 @@ class DataUserController extends Controller
             'username'  => 'required|string|unique:users,username,' . $user->id,
             'code_name' => 'required|string|unique:users,code_name,' . $user->id,
             'email'     => 'required|email|unique:users,email,' . $user->id,
-            'phone'     => 'nullable|string',
-            'role'      => 'required|in:Admin,Karyawan',
+            'phone'     => 'required|string|min:10|max:15',
+            'role'      => 'required|in:Admin,Karyawan,Kepala',
             'password'  => 'nullable|string|min:6',
+        ], [
+            'name.required' => 'Nama lengkap wajib diisi.',
+            'username.required' => 'NIP / Username wajib diisi.',
+            'username.unique' => 'NIP / Username ini sudah terdaftar di sistem.',
+            'code_name.required' => 'Kode User wajib diisi.',
+            'code_name.unique' => 'Kode User ini sudah dipakai.',
+            'email.required' => 'Email wajib diisi.',
+            'email.unique' => 'Email ini sudah terdaftar.',
+            'phone.required' => 'Nomor WA wajib diisi untuk keperluan komunikasi HRD.',
+            'phone.min' => 'Nomor WA minimal 10 digit angka.',
+            'role.required' => 'Jabatan wajib dipilih.',
+            'password.min' => 'Password minimal 6 karakter.',
         ]);
 
         $data = [
@@ -67,7 +92,7 @@ class DataUserController extends Controller
             'username'  => $request->username,
             'code_name' => $request->code_name,
             'email'     => $request->email,
-            'phone'     => $request->phone ?? '-',
+            'phone'     => $request->phone,
             'role'      => $request->role,
         ];
 
