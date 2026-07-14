@@ -37,7 +37,7 @@ class DataUserController extends Controller
             'username'  => $request->username,
             'code_name' => $request->code_name,
             'email'     => $request->email,
-            'phone'     => $request->phone,
+            'phone'     => $request->phone ?? '-',
             'role'      => $request->role,
             'password'  => Hash::make($request->password),
         ]);
@@ -67,7 +67,7 @@ class DataUserController extends Controller
             'username'  => $request->username,
             'code_name' => $request->code_name,
             'email'     => $request->email,
-            'phone'     => $request->phone,
+            'phone'     => $request->phone ?? '-',
             'role'      => $request->role,
         ];
 
