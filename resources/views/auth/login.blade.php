@@ -39,6 +39,17 @@
 
             <h2 class="text-xl font-bold text-slate-800 text-center mb-6">Silakan Masuk</h2>
 
+            @if (session('success'))
+                <div class="mb-5 p-4 rounded-xl bg-emerald-50 border border-emerald-100 flex items-start gap-3">
+                    <svg class="h-5 w-5 text-emerald-600 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <div class="text-sm text-emerald-700 font-medium">
+                        {{ session('success') }}
+                    </div>
+                </div>
+            @endif
+
             @if ($errors->has('loginError') || $errors->has('loginAkses'))
                 <div class="mb-5 p-4 rounded-xl bg-red-50 border border-red-100 flex items-start gap-3">
                     <svg class="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24"
@@ -77,7 +88,10 @@
                 </div>
 
                 <div>
-                    <label for="password" class="block text-sm font-semibold text-slate-700 mb-1">Password</label>
+                    <div class="flex items-center justify-between mb-1">
+                        <label for="password" class="block text-sm font-semibold text-slate-700">Password</label>
+                        <a href="{{ route('password.request') }}" class="text-xs font-semibold text-blue-600 hover:text-blue-800 hover:underline">Lupa Password?</a>
+                    </div>
                     <div class="relative" x-data="{ show: false }">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <svg class="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24"

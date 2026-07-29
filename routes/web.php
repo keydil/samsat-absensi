@@ -106,6 +106,12 @@ Route::get('login', fn() => view('auth.login'))->name('login');
 Route::get('logout', [AuthController::class, 'logout'])->name('logout');
 Route::post('login', [AuthController::class, 'login'])->name('auth.login');
 
+// Route Reset Password (Resend Integration)
+Route::get('forgot-password', [\App\Http\Controllers\Auth\ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
+Route::post('forgot-password', [\App\Http\Controllers\Auth\ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
+Route::get('reset-password/{token}', [\App\Http\Controllers\Auth\ForgotPasswordController::class, 'showResetForm'])->name('password.reset');
+Route::post('reset-password', [\App\Http\Controllers\Auth\ForgotPasswordController::class, 'resetPassword'])->name('password.update');
+
 // Route Dashboard Admin & User
 Route::get('dashboard/admin', [AdminController::class, 'index'])
     ->name('dashboard.admin')
