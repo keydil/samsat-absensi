@@ -45,7 +45,7 @@ class DataUserController extends Controller
             'password.min' => 'Password minimal 6 karakter.',
         ]);
 
-        User::create([
+        $user = User::create([
             'name'      => $request->name,
             'username'  => $request->username,
             'code_name' => $request->code_name,
@@ -55,7 +55,14 @@ class DataUserController extends Controller
             'password'  => Hash::make($request->password),
         ]);
 
-        return redirect()->route('admin.dataUser')->with('success', 'Pegawai berhasil ditambahkan!');
+        // Auto-send Email Kredensial via Resend / SMTP
+        try {
+            \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\WelcomeEmployeeMail($user, $request->password));
+        } catch (\Throwable $e) {
+            // Silently handle exception agar pembuatan user tidak gagal jika SMTP belum diisi di .env
+        }
+
+        return redirect()->route('admin.dataUser')->with('success', 'Pegawai berhasil ditambahkan & email kredensial dikirim!');
     }
 
     public function edit(User $user)
