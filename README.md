@@ -2,7 +2,8 @@
 
 Sistem absensi digital berbasis QR Code untuk **P3DW Rancaekek, Bapenda Provinsi Jawa Barat**. Dibangun menggunakan Laravel 12 dengan fitur keamanan Face Biometric dan Radius Locking.
 
-🔗 **Live Demo:** [web-production-721d5.up.railway.app](https://web-production-721d5.up.railway.app)
+🔗 **Live Demo:** [web-production-721d5.up.railway.app](https://web-production-721d5.up.railway.app)  
+📜 **Dokumentasi Kode Program TA:** [hasil_implementasi_code_program_ta.md](hasil_implementasi_code_program_ta.md)
 
 ---
 
