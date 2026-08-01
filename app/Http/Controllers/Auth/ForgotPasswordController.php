@@ -42,9 +42,16 @@ class ForgotPasswordController extends Controller
             ]
         );
 
-        // Kirim Email via Resend
+        // Kirim Email (Otomatis deteksi SendGrid API via HTTPS Port 443 atau fallback ke Standard Mail)
         try {
-            Mail::to($user->email)->send(new ResetPasswordMail($user, $token));
+            $mailable = new ResetPasswordMail($user, $token);
+            $apiKey = env('SENDGRID_API_KEY') ?: env('MAIL_PASSWORD');
+
+            if ($apiKey && str_starts_with($apiKey, 'SG.')) {
+                \App\Services\SendGridApiService::sendHtmlEmail($user->email, 'Reset Password - Absensi SAMSAT', $mailable->render());
+            } else {
+                Mail::to($user->email)->send($mailable);
+            }
         } catch (\Throwable $e) {
             return back()->withErrors(['email' => 'Gagal mengirim email reset password: ' . $e->getMessage()]);
         }

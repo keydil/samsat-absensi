@@ -55,11 +55,18 @@ class DataUserController extends Controller
             'password'  => Hash::make($request->password),
         ]);
 
-        // Auto-send Email Kredensial via Resend / SMTP
+        // Auto-send Email Kredensial (Otomatis deteksi SendGrid API via HTTPS Port 443)
         try {
-            \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\WelcomeEmployeeMail($user, $request->password));
+            $mailable = new \App\Mail\WelcomeEmployeeMail($user, $request->password);
+            $apiKey = env('SENDGRID_API_KEY') ?: env('MAIL_PASSWORD');
+
+            if ($apiKey && str_starts_with($apiKey, 'SG.')) {
+                \App\Services\SendGridApiService::sendHtmlEmail($user->email, 'Selamat Bergabung! Akun Absensi SAMSAT Anda', $mailable->render());
+            } else {
+                \Illuminate\Support\Facades\Mail::to($user->email)->send($mailable);
+            }
         } catch (\Throwable $e) {
-            // Silently handle exception agar pembuatan user tidak gagal jika SMTP belum diisi di .env
+            // Silently handle exception agar pembuatan user tidak gagal jika mail belum diset
         }
 
         return redirect()->route('admin.dataUser')->with('success', 'Pegawai berhasil ditambahkan & email kredensial dikirim!');
