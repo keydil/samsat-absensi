@@ -22,5 +22,10 @@ return Application::configure(basePath: dirname(__DIR__))
         
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+        // Tangkap error 419 (Page Expired) agar tidak tampil halaman error developer
+        $exceptions->render(function (\Illuminate\Session\TokenMismatchException $e, $request) {
+            return back()
+                ->withInput($request->except('_token', 'password', 'password_confirmation'))
+                ->withErrors(['email' => 'Sesi formulir Anda telah berakhir karena didiamkan terlalu lama. Silakan coba kirim ulang.']);
+        });
     })->create();
