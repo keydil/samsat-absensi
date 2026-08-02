@@ -122,14 +122,13 @@ class GenerateQRController extends Controller
             ]);
         }
 
-        // 3. Sistem Anti-Joki (Dynamic Cryptographic QR)
-        // Kita bungkus UUID dengan Timestamp saat ini, lalu digembok (HMAC)
+        // Buat payload dinamis (id + timestamp + hmac hash biar gak bisa di-screenshot)
         $timestamp = time();
         $payload = $qr->id . '|' . $timestamp;
         $signature = hash_hmac('sha256', $payload, config('app.key'));
         $secureQrString = $payload . '|' . $signature;
 
-        // Generate SVG QR Code dari string aman ini (berubah tiap detik)
+        // Render SVG QR code
         $qrSvg = QrCode::format('svg')->size(300)->generate($secureQrString);
 
         return response()->json([
