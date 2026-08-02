@@ -11,48 +11,30 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class GenerateQRController extends Controller
 {
-    /**
-     * Halaman utama QR Code — Auto-Display + Riwayat (read-only).
-     * Form manual dihapus, QR di-generate otomatis oleh sistem.
-     */
     public function index()
     {
-        // Auto-expire QR yang sudah lewat waktunya
         $now = Carbon::now('Asia/Jakarta');
         QrCodeModel::where('status', 'active')
             ->where('end_time', '<', $now)
             ->update(['status' => 'expired']);
 
-        // Ambil semua riwayat QR (read-only)
-        $activeQr = QrCodeModel::orderByDesc('created_at')
-            ->get();
+        $activeQr = QrCodeModel::orderByDesc('created_at')->get();
 
         return view('content.admin.generate-qr.index', compact('activeQr'));
     }
 
-    /**
-     * API Endpoint: Cek & auto-generate QR Code aktif berdasarkan jadwal sesi.
-     * GET /api/qr/current-active
-     *
-     * Flow:
-     * 1. Cek waktu sekarang terhadap jadwal sesi dari .env
-     * 2. Jika dalam sesi → cek DB, ada QR aktif? Return. Belum? Auto-generate.
-     * 3. Jika di luar sesi → return { active: false }
-     */
     public function currentActive()
     {
         $now = Carbon::now('Asia/Jakarta');
         $today = $now->toDateString();
         $currentTime = $now->format('H:i');
 
-        // Auto-expire QR yang sudah lewat waktunya
         QrCodeModel::where('status', 'active')
             ->where('end_time', '<', $now)
             ->update(['status' => 'expired']);
 
-        $day = strtoupper($now->format('l')); // MONDAY, TUESDAY, etc.
+        $day = strtoupper($now->format('l'));
 
-        // Konfigurasi jadwal sesi per-hari dari Setting
         $sessions = [
             [
                 'type' => 'in_present',
@@ -68,7 +50,6 @@ class GenerateQRController extends Controller
             ],
         ];
 
-        // Cek apakah sekarang masuk salah satu sesi
         $activeSession = null;
         foreach ($sessions as $session) {
             if ($currentTime >= $session['start'] && $currentTime < $session['end']) {
@@ -78,7 +59,6 @@ class GenerateQRController extends Controller
         }
 
         if (!$activeSession) {
-            // Hitung sesi berikutnya
             $nextSession = null;
             foreach ($sessions as $session) {
                 if ($currentTime < $session['start']) {
@@ -98,7 +78,6 @@ class GenerateQRController extends Controller
             ]);
         }
 
-        // Cek apakah sudah ada QR aktif untuk sesi ini hari ini
         $startTime = Carbon::parse($today . ' ' . $activeSession['start'], 'Asia/Jakarta');
         $endTime = Carbon::parse($today . ' ' . $activeSession['end'], 'Asia/Jakarta');
 
@@ -107,7 +86,6 @@ class GenerateQRController extends Controller
             ->where('status', 'active')
             ->first();
 
-        // Jika belum ada → auto-generate
         if (!$qr) {
             $qr_code_value = Str::uuid()->toString();
 
@@ -122,13 +100,11 @@ class GenerateQRController extends Controller
             ]);
         }
 
-        // Buat payload dinamis (id + timestamp + hmac hash biar gak bisa di-screenshot)
         $timestamp = time();
         $payload = $qr->id . '|' . $timestamp;
         $signature = hash_hmac('sha256', $payload, config('app.key'));
         $secureQrString = $payload . '|' . $signature;
 
-        // Render SVG QR code
         $qrSvg = QrCode::format('svg')->size(300)->generate($secureQrString);
 
         return response()->json([
@@ -147,18 +123,11 @@ class GenerateQRController extends Controller
         ]);
     }
 
-    /**
-     * Halaman Kiosk / Display mode untuk TV kantor.
-     * Full-screen, auto-polling, tanpa sidebar.
-     */
     public function display()
     {
         return view('content.admin.generate-qr.display');
     }
 
-    /**
-     * Menampilkan detail QR Code tertentu.
-     */
     public function show($code)
     {
         $qr = QrCodeModel::where('code_qr', $code)->firstOrFail();
@@ -166,9 +135,6 @@ class GenerateQRController extends Controller
         return view('content.admin.generate-qr.show', compact('qr', 'showQR'));
     }
 
-    /**
-     * Hapus QR Code.
-     */
     public function destroy($id)
     {
         $qr = QrCodeModel::findOrFail($id);

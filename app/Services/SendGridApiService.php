@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 
 class SendGridApiService
 {
@@ -13,7 +12,6 @@ class SendGridApiService
         $fromEmail = env('MAIL_FROM_ADDRESS', 'fadhilfirdausadha493@gmail.com');
         $fromName = env('MAIL_FROM_NAME', 'SAMSAT Absensi');
 
-        // Mengirim via HTTP REST API (Port 443 HTTPS - Anti Blokir Render)
         $response = Http::withToken($apiKey)
             ->acceptJson()
             ->post('https://api.sendgrid.com/v3/mail/send', [

@@ -32,7 +32,6 @@ class ForgotPasswordController extends Controller
         $user = User::where('email', $request->email)->first();
         $token = Str::random(60);
 
-        // Update / Insert Token di DB
         DB::table('password_reset_tokens')->updateOrInsert(
             ['email' => $request->email],
             [
@@ -42,7 +41,6 @@ class ForgotPasswordController extends Controller
             ]
         );
 
-        // Kirim Email (Otomatis deteksi SendGrid API via HTTPS Port 443 atau fallback ke Standard Mail)
         try {
             $mailable = new ResetPasswordMail($user, $token);
             $apiKey = env('SENDGRID_API_KEY') ?: env('MAIL_PASSWORD');
@@ -85,18 +83,15 @@ class ForgotPasswordController extends Controller
             return back()->withErrors(['email' => 'Token reset password tidak valid atau sudah kedaluwarsa.']);
         }
 
-        // Cek Expired (60 Menit)
         if (Carbon::parse($record->created_at)->addMinutes(60)->isPast()) {
             DB::table('password_reset_tokens')->where('email', $request->email)->delete();
             return back()->withErrors(['email' => 'Link reset password sudah kedaluwarsa. Silakan minta link baru.']);
         }
 
-        // Update Password User
         $user = User::where('email', $request->email)->first();
         $user->password = Hash::make($request->password);
         $user->save();
 
-        // Hapus token yang sudah dipakai
         DB::table('password_reset_tokens')->where('email', $request->email)->delete();
 
         return redirect()->route('login')->with('success', 'Password Anda berhasil diperbarui! Silakan login kembali.');

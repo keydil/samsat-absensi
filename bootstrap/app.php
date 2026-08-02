@@ -10,19 +10,13 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
-    ->withMiddleware(function (Middleware $middleware) { // Hapus type hint :void agar lebih fleksibel (opsional)
-        
+    ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
-            // Alias 'auth' biarkan saja jika memang pakai custom middleware
             'auth' => \App\Http\Middleware\Authenticate::class, 
-            
-            // --- TAMBAHKAN BARIS INI ---
             'RoleUser' => \App\Http\Middleware\RoleUser::class,
         ]);
-        
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        // Tangkap error 419 (Page Expired) agar tidak tampil halaman error developer
         $exceptions->render(function (\Illuminate\Session\TokenMismatchException $e, $request) {
             return back()
                 ->withInput($request->except('_token', 'password', 'password_confirmation'))
